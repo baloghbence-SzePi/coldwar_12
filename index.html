@@ -393,7 +393,67 @@
       75% { transform: translateX(6px); }
     }
 
-    /* 1. Zsilip: Sorbarendezés (kód nélkül) */
+    /* Kódfejtő modul (minden zsilip alján) */
+    .decoder-box {
+      margin-top: 1.35rem;
+      background: #0c1117;
+      border: 1px solid var(--amber);
+      border-left: 4px solid var(--amber);
+      border-radius: 6px;
+      padding: 1.2rem;
+    }
+
+    .decoder-box.solved {
+      border-color: var(--terminal-green);
+      border-left-color: var(--terminal-green);
+    }
+
+    .decoder-title {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      font-weight: bold;
+      color: var(--amber);
+      margin-bottom: 0.45rem;
+      letter-spacing: 0.5px;
+    }
+
+    .decoder-box.solved .decoder-title {
+      color: var(--terminal-green);
+    }
+
+    .decoder-hint {
+      font-size: 0.96rem;
+      color: #e6edf3;
+      margin-bottom: 0.9rem;
+    }
+
+    .decoder-input-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      align-items: center;
+    }
+
+    .code-input {
+      background: #161d26;
+      color: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      padding: 0.65rem 0.9rem;
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      min-width: 210px;
+    }
+
+    .code-input:focus {
+      outline: none;
+      border-color: var(--amber);
+    }
+
+    /* 1. Zsilip: Sorbarendezés */
     .sortable-list {
       display: flex;
       flex-direction: column;
@@ -437,13 +497,29 @@
       padding: 0.15rem 0.35rem;
     }
 
+    .revealed-char {
+      font-family: var(--font-mono);
+      font-weight: bold;
+      font-size: 1.1rem;
+      min-width: 2.2rem;
+      height: 2.2rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(245, 158, 11, 0.16);
+      border: 1px solid var(--amber);
+      color: var(--amber);
+      border-radius: 5px;
+      flex-shrink: 0;
+    }
+
     .sort-controls {
       display: flex;
       gap: 0.3rem;
       flex-shrink: 0;
     }
 
-    /* 2. Zsilip: Kategória-besorolás */
+    /* 2. Zsilip: Kategória-besorolás + kiemelt anagramma betűk */
     .pool-box {
       background: rgba(0, 0, 0, 0.25);
       border: 1px dashed var(--border-color);
@@ -495,12 +571,25 @@
       background: var(--bg-panel);
       border: 1px solid var(--border-color);
       border-radius: 5px;
-      padding: 0.65rem 0.8rem;
+      padding: 0.7rem 0.85rem;
       margin-bottom: 0.55rem;
-      font-size: 0.92rem;
+      font-size: 0.94rem;
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
+    }
+
+    .anagram-letter {
+      display: inline-block;
+      background: rgba(245, 158, 11, 0.24);
+      color: #ffd166;
+      border: 1px solid var(--amber);
+      border-radius: 3px;
+      padding: 0 0.24rem;
+      margin: 0 0.06rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
     }
 
     .cat-actions {
@@ -552,7 +641,7 @@
       padding: 0.85rem 1rem;
       margin-bottom: 0.65rem;
       display: grid;
-      grid-template-columns: 160px 1fr 1fr;
+      grid-template-columns: 170px 1fr 1fr;
       gap: 0.75rem;
       align-items: center;
     }
@@ -567,6 +656,17 @@
       font-weight: 700;
       color: #fff;
       font-size: 1rem;
+    }
+
+    .country-num {
+      display: inline-block;
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid var(--amber);
+      color: var(--amber);
+      font-family: var(--font-mono);
+      padding: 0.05rem 0.4rem;
+      border-radius: 4px;
+      margin-right: 0.35rem;
     }
 
     select.dossier-select {
@@ -761,7 +861,7 @@
         </p>
         <p style="margin-top: 0.65rem;">
           Minden egyes információs zsilip feltörésére pontosan <strong>5 percetek</strong> van. 
-          Az 5. zsilip feltörésekor az óra megáll, és kimásolhatjátok a párosotok megoldási idejét.
+          A feladatok megoldása után a rejtett nyomokból egy <strong>nyitókódot</strong> kell kiszűrnötök, amellyel továbbjuthattok a következő zsiliphez.
         </p>
       </div>
 
@@ -800,14 +900,27 @@
         <div class="gate-body" id="body-1">
           <p class="instruction">
             Az alábbi öt történelmi esemény összekeveredett az archívum adatbázisában. Állítsátok őket helyes időrendi sorrendbe 
-            <strong>a legkorábbitól a legkésőbbiig</strong> (húzással vagy a nyilakkal)! A rendszer csak akkor nyitja meg a következő zsilipet, 
-            ha mind az öt eseményt pontos időrendbe raktátok.
+            <strong>a legkorábbitól a legkésőbbiig</strong> (húzással vagy a nyilakkal)! Ha eltaláljátok a sorrendet, megjelennek a titkosított karakterek.
           </p>
           <div class="sortable-list" id="sortableList"></div>
           <div>
-            <button class="btn btn-check" onclick="checkGate1()">Időrend ellenőrzése</button>
+            <button class="btn btn-check" id="checkBtn-1" onclick="checkGate1Task()">Időrend ellenőrzése</button>
           </div>
           <div class="feedback" id="feedback-1"></div>
+
+          <!-- 1. zsilip kódbeviteli modul -->
+          <div class="decoder-box hidden" id="decoder-1">
+            <div class="decoder-title">🔑 1. ZSILIP NYITÓKÓDJA</div>
+            <p class="decoder-hint">
+              <strong>Segítség:</strong> A helyes időrendi sorrend mellett megjelentek a titkosított karakterek (fentről lefelé). 
+              Írjátok be az így kapott ötjegyű jelszót (az egyik legfontosabb fegyverkorlátozási egyezmény rövidítését)!
+            </p>
+            <div class="decoder-input-row">
+              <input type="text" id="codeInput-1" class="code-input" placeholder="5 karakteres kód..." onkeydown="if(event.key==='Enter') verifyGate1Code()">
+              <button class="btn btn-primary" onclick="verifyGate1Code()">Zsilip nyitása</button>
+            </div>
+            <div class="feedback" id="codeFeedback-1"></div>
+          </div>
         </div>
       </section>
 
@@ -826,7 +939,7 @@
             nyolc gazdasági folyamatot és következményt aszerint, hogy a <strong>Nyugati blokkra</strong> vagy a <strong>Keleti blokkra (és Magyarországra)</strong> voltak jellemzőek!
           </p>
           <div class="pool-box" id="poolBox">
-            <div class="pool-title">BESOROLÁSRA VÁRÓ JELENTÉSELEMEK:</div>
+            <div class="pool-title">BESOROLÁSRA VÁRÓ JELENTÉSELEMEK (FIGYELJÉTEK A KIEMELT BETŰKET!):</div>
             <div id="poolItems"></div>
           </div>
           <div class="columns-grid">
@@ -839,8 +952,22 @@
               <div id="eastItems"></div>
             </div>
           </div>
-          <button class="btn btn-check" onclick="checkGate2()">Besorolás ellenőrzése</button>
+          <button class="btn btn-check" id="checkBtn-2" onclick="checkGate2Task()">Besorolás ellenőrzése</button>
           <div class="feedback" id="feedback-2"></div>
+
+          <!-- 2. zsilip kódbeviteli modul -->
+          <div class="decoder-box hidden" id="decoder-2">
+            <div class="decoder-title">🔑 2. ZSILIP NYITÓKÓDJA</div>
+            <p class="decoder-hint">
+              <strong>Segítség (Anagramma):</strong> A nyolc kártya szövegében egy-egy arany betűt (vagy betűkapcsolatot) emeltünk ki. 
+              Rendezzétek sorba ezt a 8 elemet: a kódszó annak a szovjet vezetőnek a <strong>vezetékneve</strong>, aki később reformjaival megpróbálta megmenteni a gazdaságot!
+            </p>
+            <div class="decoder-input-row">
+              <input type="text" id="codeInput-2" class="code-input" placeholder="Vezetéknév..." onkeydown="if(event.key==='Enter') verifyGate2Code()">
+              <button class="btn btn-primary" onclick="verifyGate2Code()">Zsilip nyitása</button>
+            </div>
+            <div class="feedback" id="codeFeedback-2"></div>
+          </div>
         </div>
       </section>
 
@@ -882,8 +1009,22 @@
 
           <div id="matchingContainer"></div>
 
-          <button class="btn btn-check" onclick="checkGate3()">Párosítás ellenőrzése</button>
+          <button class="btn btn-check" id="checkBtn-3" onclick="checkGate3Task()">Párosítás ellenőrzése</button>
           <div class="feedback" id="feedback-3"></div>
+
+          <!-- 3. zsilip kódbeviteli modul -->
+          <div class="decoder-box hidden" id="decoder-3">
+            <div class="decoder-title">🔑 3. ZSILIP NYITÓKÓDJA</div>
+            <p class="decoder-hint">
+              <strong>Segítség (Fordított sorrend):</strong> Olvassátok le az első oszlopban szereplő országok sorszámait 
+              <strong>a végétől előre (alulról felfelé)</strong>, és írjátok be a négyjegyű számkódot!
+            </p>
+            <div class="decoder-input-row">
+              <input type="text" id="codeInput-3" class="code-input" placeholder="4 jegyű számkód..." onkeydown="if(event.key==='Enter') verifyGate3Code()">
+              <button class="btn btn-primary" onclick="verifyGate3Code()">Zsilip nyitása</button>
+            </div>
+            <div class="feedback" id="codeFeedback-3"></div>
+          </div>
         </div>
       </section>
 
@@ -943,8 +1084,21 @@
             </div>
           </div>
 
-          <button class="btn btn-check" onclick="checkGate4()">Javítások ellenőrzése</button>
+          <button class="btn btn-check" id="checkBtn-4" onclick="checkGate4Task()">Javítások ellenőrzése</button>
           <div class="feedback" id="feedback-4"></div>
+
+          <!-- 4. zsilip kódbeviteli modul -->
+          <div class="decoder-box hidden" id="decoder-4">
+            <div class="decoder-title">🔑 4. ZSILIP NYITÓKÓDJA</div>
+            <p class="decoder-hint">
+              <strong>Segítség:</strong> Oldjátok meg a fenti szövegben található matematikai műveletet, és írjátok be az eredményt számmal!
+            </p>
+            <div class="decoder-input-row">
+              <input type="text" id="codeInput-4" class="code-input" placeholder="Szám..." onkeydown="if(event.key==='Enter') verifyGate4Code()">
+              <button class="btn btn-primary" onclick="verifyGate4Code()">Zsilip nyitása</button>
+            </div>
+            <div class="feedback" id="codeFeedback-4"></div>
+          </div>
         </div>
       </section>
 
@@ -960,15 +1114,29 @@
         <div class="gate-body hidden" id="body-5">
           <p class="instruction">
             Elértetek a kijárati ajtóhoz! Válaszoljatok helyesen mind a négy zárókérdésre az ötödik hírszerzési jelentés alapján, 
-            hogy kinyíljon a kijárat, és rögzíthessétek a csapatotok eredményét.
+            hogy megkapjátok a végső kombinációt.
           </p>
 
           <div id="quizContainer"></div>
 
           <div>
-            <button class="btn btn-primary" onclick="checkGate5()">🔓 Kijárati ajtó nyitása és idő megállítása</button>
+            <button class="btn btn-check" id="checkBtn-5" onclick="checkGate5Task()">Válaszok ellenőrzése</button>
           </div>
           <div class="feedback" id="feedback-5"></div>
+
+          <!-- 5. zsilip kódbeviteli modul -->
+          <div class="decoder-box hidden" id="decoder-5">
+            <div class="decoder-title">🔑 KIJÁRATI AJTÓ BIZTONSÁGI KÓDJA</div>
+            <p class="decoder-hint">
+              <strong>Segítség:</strong> Írjátok be egymás után a négy helyes válasz betűjelének sorrendjét (1-től 4-ig), 
+              hogy kinyíljon a kijárat és megálljon az óra!
+            </p>
+            <div class="decoder-input-row">
+              <input type="text" id="codeInput-5" class="code-input" placeholder="4 betűs kód..." onkeydown="if(event.key==='Enter') verifyGate5Code()">
+              <button class="btn btn-primary" onclick="verifyGate5Code()">🔓 Kijárati ajtó nyitása</button>
+            </div>
+            <div class="feedback" id="codeFeedback-5"></div>
+          </div>
         </div>
       </section>
 
@@ -1040,37 +1208,78 @@
     let currentGate = 1;
     let student1 = '';
     let student2 = '';
+    const taskSolved = { 1: false, 2: false, 3: false, 4: false, 5: false };
     const unlockedGates = { 1: false, 2: false, 3: false, 4: false, 5: false };
 
-    // --- 1. ZSILIP ADATOK (keverve, kódok nélkül) ---
+    // --- 1. ZSILIP ADATOK (keverve, a betűk csak helyes sorrend után jelennek meg) ---
     let gate1Items = [
-      { order: 3, text: 'A német–német alapszerződés megkötése, amelyben az NSZK és az NDK kölcsönösen elismerte egymást.' },
-      { order: 5, text: 'A szovjet hadsereg bevonulása Afganisztánba, amely véget vetett az enyhülés korszakának.' },
-      { order: 1, text: 'A kubai rakétaválság lezárása és a Washington–Moszkva közötti „forró drót” kiépítése.' },
-      { order: 4, text: 'A helsinki záróokmány aláírása 35 állam részvételével.' },
-      { order: 2, text: 'A csehszlovákiai „prágai tavasz” leverése és a Brezsnyev-doktrína meghirdetése.' }
+      { order: 3, letter: 'L', text: 'A német–német alapszerződés megkötése, amelyben az NSZK és az NDK kölcsönösen elismerte egymást.' },
+      { order: 5, letter: '1', text: 'A szovjet hadsereg bevonulása Afganisztánba, amely véget vetett az enyhülés korszakának.' },
+      { order: 1, letter: 'S', text: 'A kubai rakétaválság lezárása és a Washington–Moszkva közötti „forró drót” kiépítése.' },
+      { order: 4, letter: 'T', text: 'A helsinki záróokmány aláírása 35 állam részvételével.' },
+      { order: 2, letter: 'A', text: 'A csehszlovákiai „prágai tavasz” leverése és a Brezsnyev-doktrína meghirdetése.' }
     ];
     let draggedIndex = null;
 
-    // --- 2. ZSILIP ADATOK ---
-    const gate2Data = [
-      { id: 1, text: '1. Benzinjegy-rendszer és autómentes vasárnapok bevezetése.', correct: 'west', location: 'pool' },
-      { id: 2, text: '2. A magas olajárakból származó extraprofit miatt elhalasztott gazdasági reformok.', correct: 'east', location: 'pool' },
-      { id: 3, text: '3. A mikroelektronika, a számítástechnika és a szolgáltatószektor előtérbe helyezése.', correct: 'west', location: 'pool' },
-      { id: 4, text: '4. Súlyos cserearány-romlás a nyersanyagszegénység miatt.', correct: 'east', location: 'pool' },
-      { id: 5, text: '5. Stagfláció (gazdasági megtorpanás és magas infláció egyszerre) kialakulása.', correct: 'west', location: 'pool' },
-      { id: 6, text: '6. Nyugati hitelek („petrodollárok”) felvétele az életszínvonal mesterséges fenntartására.', correct: 'east', location: 'pool' },
-      { id: 7, text: '7. Az állami szerepvállalás csökkentése, neoliberális gazdaságpolitikai fordulat.', correct: 'west', location: 'pool' },
-      { id: 8, text: '8. Adósságspirál kialakulása a nyolcvanas évekre.', correct: 'east', location: 'pool' }
+    // --- 2. ZSILIP ADATOK (8 elem, sorszám nélkül, kiemelt G-O-R-B-A-CS-O-V betűkkel) ---
+    let gate2Data = [
+      {
+        id: 1,
+        correct: 'west',
+        location: 'pool',
+        html: '<span class="anagram-letter">B</span>enzinjegy-rendszer és autómentes vasárnapok bevezetése.'
+      },
+      {
+        id: 2,
+        correct: 'east',
+        location: 'pool',
+        html: 'A ma<span class="anagram-letter">g</span>as olajárakból származó extraprofit miatt elhalasztott gazdasági reformok.'
+      },
+      {
+        id: 3,
+        correct: 'west',
+        location: 'pool',
+        html: 'A mikr<span class="anagram-letter">o</span>elektronika, a számítástechnika és a szolgáltatószektor előtérbe helyezése.'
+      },
+      {
+        id: 4,
+        correct: 'east',
+        location: 'pool',
+        html: 'Súlyos <span class="anagram-letter">cs</span>erearány-romlás a nyersanyagszegénység miatt.'
+      },
+      {
+        id: 5,
+        correct: 'west',
+        location: 'pool',
+        html: 'Stagfláció (gazdasági megto<span class="anagram-letter">r</span>panás és magas infláció egyszerre) kialakulása.'
+      },
+      {
+        id: 6,
+        correct: 'east',
+        location: 'pool',
+        html: 'Nyug<span class="anagram-letter">a</span>ti hitelek („petrodollárok”) felvétele az életszínvonal mesterséges fenntartására.'
+      },
+      {
+        id: 7,
+        correct: 'west',
+        location: 'pool',
+        html: 'Az állami szerep<span class="anagram-letter">v</span>állalás csökkentése, neoliberális gazdaságpolitikai fordulat.'
+      },
+      {
+        id: 8,
+        correct: 'east',
+        location: 'pool',
+        html: 'Adósságspirál kialakulása a ny<span class="anagram-letter">o</span>lcvanas évekre.'
+      }
     ];
     let draggedCatId = null;
 
     // --- 3. ZSILIP ADATOK ---
     const gate3Countries = [
-      { num: 1, name: '1. Lengyelország', correctWay: 'C', correctActor: 'III' },
-      { num: 2, name: '2. Magyarország', correctWay: 'D', correctActor: 'I' },
-      { num: 3, name: '3. Csehszlovákia', correctWay: 'A', correctActor: 'IV' },
-      { num: 4, name: '4. Románia', correctWay: 'B', correctActor: 'II' }
+      { num: 1, name: 'Lengyelország', correctWay: 'C', correctActor: 'III' },
+      { num: 2, name: 'Magyarország', correctWay: 'D', correctActor: 'I' },
+      { num: 3, name: 'Csehszlovákia', correctWay: 'A', correctActor: 'IV' },
+      { num: 4, name: 'Románia', correctWay: 'B', correctActor: 'II' }
     ];
 
     // --- 5. ZSILIP ADATOK ---
@@ -1117,7 +1326,18 @@
       }
     ];
 
-    // --- INDÍTÁS ÉS IDŐMÉRŐ ---
+    // --- SEGÉDFÜGGVÉNYEK ---
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    function normalizeText(str) {
+      return str.trim().toLowerCase().replace(/\s+/g, ' ');
+    }
+
     function formatTime(secsTotal) {
       const mins = Math.floor(secsTotal / 60);
       const secs = secsTotal % 60;
@@ -1135,6 +1355,7 @@
       document.getElementById('timerDisplay').textContent = `${currentGate}. zsilip: ${formatTime(timeRemaining)}`;
     }
 
+    // --- INDÍTÁS ÉS IDŐZÍTŐ ---
     function startGame() {
       const m1 = document.getElementById('member1').value.trim();
       const m2 = document.getElementById('member2').value.trim();
@@ -1149,6 +1370,9 @@
       student1 = m1;
       student2 = m2;
       document.getElementById('hudNames').textContent = `${student1} & ${student2}`;
+
+      // 2. zsilip kártyáinak véletlenszerű összekeverése induláskor
+      shuffleArray(gate2Data);
 
       document.getElementById('introScreen').classList.add('hidden');
       document.getElementById('gameScreen').classList.remove('hidden');
@@ -1208,12 +1432,15 @@
       timerInterval = setInterval(updateTimer, 1000);
     }
 
-    function unlockNextGate(completedNum) {
+    function unlockNextGate(completedNum, codeLabel) {
       unlockedGates[completedNum] = true;
       const card = document.getElementById(`gate-${completedNum}`);
       card.classList.remove('active');
       card.classList.add('unlocked');
-      document.getElementById(`status-${completedNum}`).textContent = '🔓 NYITVA';
+      document.getElementById(`status-${completedNum}`).textContent = `🔓 NYITVA (${codeLabel})`;
+
+      const decoder = document.getElementById(`decoder-${completedNum}`);
+      if (decoder) decoder.classList.add('solved');
 
       const pill = document.getElementById(`pill-${completedNum}`);
       pill.classList.remove('active');
@@ -1249,26 +1476,30 @@
       gate1Items.forEach((item, idx) => {
         const div = document.createElement('div');
         div.className = 'sort-item';
-        div.draggable = !unlockedGates[1];
+        div.draggable = !taskSolved[1];
         div.ondragstart = () => { draggedIndex = idx; div.classList.add('dragging'); };
         div.ondragend = () => { div.classList.remove('dragging'); };
         div.ondragover = (e) => e.preventDefault();
         div.ondrop = () => {
-          if (draggedIndex === null || draggedIndex === idx || unlockedGates[1]) return;
+          if (draggedIndex === null || draggedIndex === idx || taskSolved[1]) return;
           const moved = gate1Items.splice(draggedIndex, 1)[0];
           gate1Items.splice(idx, 0, moved);
           draggedIndex = null;
           renderGate1();
         };
 
+        const badgeHtml = taskSolved[1]
+          ? `<span class="revealed-char">${item.letter}</span>`
+          : `<span class="drag-handle">☰</span>`;
+
         div.innerHTML = `
           <div class="sort-left">
-            <span class="drag-handle">☰</span>
+            ${badgeHtml}
             <span>${item.text}</span>
           </div>
           <div class="sort-controls">
-            <button class="btn btn-secondary btn-sm" onclick="moveGate1(${idx}, -1)" ${idx === 0 || unlockedGates[1] ? 'disabled' : ''} title="Feljebb">▲</button>
-            <button class="btn btn-secondary btn-sm" onclick="moveGate1(${idx}, 1)" ${idx === gate1Items.length - 1 || unlockedGates[1] ? 'disabled' : ''} title="Lejjebb">▼</button>
+            <button class="btn btn-secondary btn-sm" onclick="moveGate1(${idx}, -1)" ${idx === 0 || taskSolved[1] ? 'disabled' : ''} title="Feljebb">▲</button>
+            <button class="btn btn-secondary btn-sm" onclick="moveGate1(${idx}, 1)" ${idx === gate1Items.length - 1 || taskSolved[1] ? 'disabled' : ''} title="Lejjebb">▼</button>
           </div>
         `;
         list.appendChild(div);
@@ -1276,7 +1507,7 @@
     }
 
     function moveGate1(index, dir) {
-      if (unlockedGates[1]) return;
+      if (taskSolved[1]) return;
       const newIndex = index + dir;
       if (newIndex < 0 || newIndex >= gate1Items.length) return;
       const temp = gate1Items[index];
@@ -1285,17 +1516,35 @@
       renderGate1();
     }
 
-    function checkGate1() {
+    function checkGate1Task() {
       const isCorrect = gate1Items.every((item, index) => item.order === index + 1);
       const fb = document.getElementById('feedback-1');
       if (isCorrect) {
+        taskSolved[1] = true;
+        document.getElementById('checkBtn-1').disabled = true;
         fb.className = 'feedback success';
-        fb.textContent = '✅ Helyes időrend (1962–1963 → 1968 → 1972 → 1975 → 1979)! Az 1. zsilip kinyílt.';
-        unlockNextGate(1);
+        fb.textContent = '✅ Helyes időrend! Megjelentek a titkosított karakterek a kártyák mellett.';
         renderGate1();
+        const dec = document.getElementById('decoder-1');
+        dec.classList.remove('hidden');
+        document.getElementById('codeInput-1').focus();
       } else {
         fb.className = 'feedback error';
         fb.textContent = '❌ Az események időrendje még nem pontos. Ellenőrizzétek a legkorábbi és legkésőbbi dátumokat!';
+      }
+    }
+
+    function verifyGate1Code() {
+      const val = document.getElementById('codeInput-1').value.trim().toUpperCase();
+      const cfb = document.getElementById('codeFeedback-1');
+      if (val === 'SALT1') {
+        document.getElementById('codeInput-1').disabled = true;
+        cfb.className = 'feedback success';
+        cfb.textContent = '🔓 Elfogadva! Az 1. zsilip kinyílt.';
+        unlockNextGate(1, 'SALT1');
+      } else {
+        cfb.className = 'feedback error';
+        cfb.textContent = '❌ Hibás nyitókód! Olvassátok össze fentről lefelé a kártyák mellett megjelent karaktereket.';
       }
     }
 
@@ -1314,11 +1563,11 @@
         if (item.location === 'pool') remainingInPool++;
         const card = document.createElement('div');
         card.className = 'cat-item';
-        card.draggable = !unlockedGates[2];
+        card.draggable = !taskSolved[2];
         card.ondragstart = () => { draggedCatId = item.id; };
 
         let buttonsHtml = '';
-        if (!unlockedGates[2]) {
+        if (!taskSolved[2]) {
           if (item.location === 'pool') {
             buttonsHtml = `
               <button class="btn btn-secondary btn-sm" onclick="assignCat(${item.id}, 'west')">⬅ Nyugati blokk</button>
@@ -1338,7 +1587,7 @@
         }
 
         card.innerHTML = `
-          <div>${item.text}</div>
+          <div>${item.html}</div>
           <div class="cat-actions">${buttonsHtml}</div>
         `;
 
@@ -1351,7 +1600,7 @@
     }
 
     function assignCat(id, target) {
-      if (unlockedGates[2]) return;
+      if (taskSolved[2]) return;
       const item = gate2Data.find(x => x.id === id);
       if (item) item.location = target;
       renderGate2();
@@ -1366,7 +1615,7 @@
       }
     }
 
-    function checkGate2() {
+    function checkGate2Task() {
       const fb = document.getElementById('feedback-2');
       const unassigned = gate2Data.filter(x => x.location === 'pool').length;
       if (unassigned > 0) {
@@ -1376,13 +1625,31 @@
       }
       const wrongCount = gate2Data.filter(x => x.location !== x.correct).length;
       if (wrongCount === 0) {
+        taskSolved[2] = true;
+        document.getElementById('checkBtn-2').disabled = true;
         fb.className = 'feedback success';
-        fb.textContent = '✅ Tökéletes besorolás! A 2. zsilip kinyílt.';
-        unlockNextGate(2);
+        fb.textContent = '✅ Tökéletes besorolás! Most fejtsétek meg az anagrammát a zsilip kinyitásához.';
         renderGate2();
+        const dec = document.getElementById('decoder-2');
+        dec.classList.remove('hidden');
+        document.getElementById('codeInput-2').focus();
       } else {
         fb.className = 'feedback error';
         fb.textContent = `❌ Még ${wrongCount} elem rossz oszlopban szerepel. Vizsgáljátok meg újra a két tömb eltérő gazdasági válaszait!`;
+      }
+    }
+
+    function verifyGate2Code() {
+      const val = document.getElementById('codeInput-2').value.trim().toUpperCase();
+      const cfb = document.getElementById('codeFeedback-2');
+      if (val === 'GORBACSOV') {
+        document.getElementById('codeInput-2').disabled = true;
+        cfb.className = 'feedback success';
+        cfb.textContent = '🔓 Elfogadva! A 2. zsilip kinyílt.';
+        unlockNextGate(2, 'GORBACSOV');
+      } else {
+        cfb.className = 'feedback error';
+        cfb.textContent = '❌ Hibás nyitókód! Rakjátok sorba a kártyákon arannyal kiemelt 8 elemet (B, G, O, CS, R, A, V, O).';
       }
     }
 
@@ -1394,7 +1661,7 @@
         const row = document.createElement('div');
         row.className = 'match-row';
         row.innerHTML = `
-          <div class="country-label">${c.name}</div>
+          <div class="country-label"><span class="country-num">${c.num}.</span> ${c.name}</div>
           <select class="dossier-select" id="way-${c.num}">
             <option value="">-- Válassz átalakulási módot --</option>
             <option value="A">A) Bársonyos forradalom (tömegtüntetések, általános sztrájk)</option>
@@ -1414,7 +1681,7 @@
       });
     }
 
-    function checkGate3() {
+    function checkGate3Task() {
       const fb = document.getElementById('feedback-3');
       let wrongRows = 0;
       for (const c of gate3Countries) {
@@ -1426,25 +1693,39 @@
       }
 
       if (wrongRows === 0) {
+        taskSolved[3] = true;
+        document.getElementById('checkBtn-3').disabled = true;
         fb.className = 'feedback success';
-        fb.textContent = '✅ Mind a négy ország párosítása hibátlan! A 3. zsilip kinyílt.';
+        fb.textContent = '✅ Mind a négy ország párosítása hibátlan!';
         gate3Countries.forEach(c => {
           document.getElementById(`way-${c.num}`).disabled = true;
           document.getElementById(`actor-${c.num}`).disabled = true;
         });
-        unlockNextGate(3);
+        const dec = document.getElementById('decoder-3');
+        dec.classList.remove('hidden');
+        document.getElementById('codeInput-3').focus();
       } else {
         fb.className = 'feedback error';
         fb.textContent = `❌ ${wrongRows} országnál még nem teljes vagy hibás a párosítás.`;
       }
     }
 
-    // --- 4. ZSILIP LOGIKA (ÖNÁLLÓ SZÖVEGBEÍRÁS) ---
-    function normalizeText(str) {
-      return str.trim().toLowerCase().replace(/\s+/g, ' ');
+    function verifyGate3Code() {
+      const val = document.getElementById('codeInput-3').value.trim();
+      const cfb = document.getElementById('codeFeedback-3');
+      if (val === '4321') {
+        document.getElementById('codeInput-3').disabled = true;
+        cfb.className = 'feedback success';
+        cfb.textContent = '🔓 Elfogadva! A 3. zsilip kinyílt.';
+        unlockNextGate(3, '4321');
+      } else {
+        cfb.className = 'feedback error';
+        cfb.textContent = '❌ Hibás nyitókód! Olvassátok ki az első oszlop sorszámait alulról felfelé.';
+      }
     }
 
-    function checkGate4() {
+    // --- 4. ZSILIP LOGIKA (ÖNÁLLÓ SZÖVEGBEÍRÁS) ---
+    function checkGate4Task() {
       const rules = {
         'inp-1': ['magyarországra', 'magyarország'],
         'inp-2': ['nszk-ba', 'nszk'],
@@ -1464,17 +1745,35 @@
 
       const fb = document.getElementById('feedback-4');
       if (wrongNums.length === 0) {
+        taskSolved[4] = true;
+        document.getElementById('checkBtn-4').disabled = true;
         for (let i = 1; i <= 5; i++) {
           const el = document.getElementById(`inp-${i}`);
           el.classList.add('verified');
           el.disabled = true;
         }
         fb.className = 'feedback success';
-        fb.textContent = '✅ Mind az 5 szabotált adatot sikeresen kijavítottátok! Megnyílt az utolsó zsilip.';
-        unlockNextGate(4);
+        fb.textContent = '✅ Mind az 5 szabotált adatot sikeresen kijavítottátok!';
+        const dec = document.getElementById('decoder-4');
+        dec.classList.remove('hidden');
+        document.getElementById('codeInput-4').focus();
       } else {
         fb.className = 'feedback error';
         fb.textContent = `❌ A következő sorszámú mező(k)ben még hibás vagy hiányos a javítás: [${wrongNums.join('], [')}].`;
+      }
+    }
+
+    function verifyGate4Code() {
+      const val = normalizeText(document.getElementById('codeInput-4').value);
+      const cfb = document.getElementById('codeFeedback-4');
+      if (val === '6' || val === 'hat') {
+        document.getElementById('codeInput-4').disabled = true;
+        cfb.className = 'feedback success';
+        cfb.textContent = '🔓 Elfogadva! Megnyílt az utolsó zsilip.';
+        unlockNextGate(4, '6');
+      } else {
+        cfb.className = 'feedback error';
+        cfb.textContent = '❌ Hibás nyitókód! Keressétek meg a szöveg végén szereplő összeadást („kettő plusz négy”).';
       }
     }
 
@@ -1502,16 +1801,7 @@
       });
     }
 
-    function getResultSummaryText() {
-      const timeFormatted = formatDetailedTime(totalElapsedSeconds);
-      return `Kódnév: Vörös Akta – Küldetés teljesítve!\n\n` +
-             `1. csapattag: ${student1}\n` +
-             `2. csapattag: ${student2}\n` +
-             `Pontos megoldási idő: ${timeFormatted}\n` +
-             `Státusz: Mind az 5 zsilip sikeresen feltörve.`;
-    }
-
-    function checkGate5() {
+    function checkGate5Task() {
       const fb = document.getElementById('feedback-5');
       let unanswered = 0;
       let wrong = 0;
@@ -1527,11 +1817,29 @@
 
       if (unanswered > 0) {
         fb.className = 'feedback error';
-        fb.textContent = '❌ Válaszoljatok mind a 4 kérdésre a kijárati ajtó nyitásához!';
+        fb.textContent = '❌ Válaszoljatok mind a 4 kérdésre az ellenőrzéshez!';
         return;
       }
 
       if (wrong === 0) {
+        taskSolved[5] = true;
+        document.getElementById('checkBtn-5').disabled = true;
+        document.querySelectorAll('#quizContainer input[type="radio"]').forEach(r => r.disabled = true);
+        fb.className = 'feedback success';
+        fb.textContent = '✅ Mind a négy válasz helyes! Most adjátok meg a zárókódot.';
+        const dec = document.getElementById('decoder-5');
+        dec.classList.remove('hidden');
+        document.getElementById('codeInput-5').focus();
+      } else {
+        fb.className = 'feedback error';
+        fb.textContent = `❌ ${wrong} kérdésre még nem helyes a válasz. Ellenőrizzétek a jelöléseiteket!`;
+      }
+    }
+
+    function verifyGate5Code() {
+      const val = document.getElementById('codeInput-5').value.trim().toUpperCase();
+      const cfb = document.getElementById('codeFeedback-5');
+      if (val === 'BADC') {
         clearInterval(timerInterval);
         unlockedGates[5] = true;
 
@@ -1549,9 +1857,19 @@
         document.getElementById('victoryScreen').classList.remove('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        fb.className = 'feedback error';
-        fb.textContent = `❌ ${wrong} kérdésre még nem helyes a válasz. Ellenőrizzétek a jelöléseiteket!`;
+        cfb.className = 'feedback error';
+        cfb.textContent = '❌ Hibás biztonsági kód! Írjátok be egymás után a négy helyes válasz betűjelét (1–4. kérdés).';
       }
+    }
+
+    // --- EREDMÉNY MÁSOLÁSA ---
+    function getResultSummaryText() {
+      const timeFormatted = formatDetailedTime(totalElapsedSeconds);
+      return `Kódnév: Vörös Akta – Küldetés teljesítve!\n\n` +
+             `1. csapattag: ${student1}\n` +
+             `2. csapattag: ${student2}\n` +
+             `Pontos megoldási idő: ${timeFormatted}\n` +
+             `Státusz: Mind az 5 zsilip sikeresen feltörve.`;
     }
 
     function copyResultText() {
