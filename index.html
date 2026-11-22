@@ -676,15 +676,6 @@
       accent-color: var(--amber);
     }
 
-    /* Tanári gyorsvezérlő */
-    .teacher-bar {
-      max-width: 960px;
-      margin: 2rem auto 0;
-      padding: 0 1rem;
-      display: none;
-      justify-content: flex-end;
-    }
-
     .hidden {
       display: none !important;
     }
@@ -770,7 +761,7 @@
         </p>
         <p style="margin-top: 0.65rem;">
           Minden egyes információs zsilip feltörésére pontosan <strong>5 percetek</strong> van. 
-          Az 5. zsilip feltörésekor az óra megáll, és rögzíthetitek a párosotok megoldási idejét.
+          Az 5. zsilip feltörésekor az óra megáll, és kimásolhatjátok a párosotok megoldási idejét.
         </p>
       </div>
 
@@ -983,13 +974,13 @@
 
     </div>
 
-    <!-- GYŐZELMI ÉS EREDMÉNYKÜLDŐ KÉPERNYŐ -->
+    <!-- GYŐZELMI ÉS EREDMÉNYMÁSOLÓ KÉPERNYŐ -->
     <section class="dossier-box hidden" id="victoryScreen" style="border-top-color: var(--terminal-green);">
       <div class="top-secret-stamp" style="border-color: var(--terminal-green); color: var(--terminal-green);">
         KÜLDETÉS TELJESÍTVE // KIJÁRAT NYITVA
       </div>
       <h1>Sikeresen kijutottatok a Kreml archívumából!</h1>
-      <div class="subtitle">Az időmérő óra megállt. Küldjétek el a párosotok eredményét a tanárnak!</div>
+      <div class="subtitle">Az időmérő óra megállt. Másoljátok ki az eredményt, és küldjétek el a tanárnak!</div>
 
       <div class="certificate-box">
         <div class="cert-row">
@@ -1011,11 +1002,8 @@
       </div>
 
       <div class="action-buttons">
-        <a id="emailLinkBtn" href="#" class="btn btn-check">
-          ✉ Eredmény küldése e-mailben
-        </a>
-        <button class="btn btn-secondary" onclick="copyResultText()">
-          📋 Eredmény szövegének másolása (Webmailhez)
+        <button class="btn btn-check" onclick="copyResultText()">
+          📋 Eredmény szövegének másolása
         </button>
         <button class="btn btn-secondary" onclick="location.reload()">
           ↻ Új páros indítása
@@ -1041,13 +1029,6 @@
     </section>
 
   </main>
-
-  <!-- Tanári előnézet / Preset sáv -->
-  <div class="teacher-bar" id="teacherBar">
-    <button class="btn btn-secondary btn-sm" onclick="fillCurrentPreset()">
-      ⚡ Tanári teszt: Aktuális zsilip helyes kitöltése
-    </button>
-  </div>
 
   <script>
     // --- JÁTÉKÁLLAPOT ---
@@ -1172,7 +1153,6 @@
       document.getElementById('introScreen').classList.add('hidden');
       document.getElementById('gameScreen').classList.remove('hidden');
       document.getElementById('hudBar').style.display = 'block';
-      document.getElementById('teacherBar').style.display = 'flex';
 
       timeRemaining = GATE_TIME_SECONDS;
       totalElapsedSeconds = 0;
@@ -1196,7 +1176,6 @@
         clearInterval(timerInterval);
         document.getElementById('timeoutSubtitle').textContent = `Lejárt a(z) ${currentGate}. zsiliphez tartozó 5 perces időkeret`;
         document.getElementById('gameScreen').classList.add('hidden');
-        document.getElementById('teacherBar').style.display = 'none';
         document.getElementById('timeoutScreen').classList.remove('hidden');
       }
 
@@ -1215,7 +1194,6 @@
       updateTimerDisplay();
       document.getElementById('timeoutScreen').classList.add('hidden');
       document.getElementById('gameScreen').classList.remove('hidden');
-      document.getElementById('teacherBar').style.display = 'flex';
       timerInterval = setInterval(updateTimer, 1000);
     }
 
@@ -1223,7 +1201,6 @@
       practiceMode = true;
       document.getElementById('timeoutScreen').classList.add('hidden');
       document.getElementById('gameScreen').classList.remove('hidden');
-      document.getElementById('teacherBar').style.display = 'flex';
       const tBox = document.getElementById('timerBox');
       tBox.classList.remove('urgent');
       tBox.classList.add('practice');
@@ -1568,12 +1545,7 @@
         document.getElementById('resMember2').textContent = student2;
         document.getElementById('resTotalTime').textContent = timeFormatted;
 
-        const subject = encodeURIComponent(`Vörös Akta eredmény – ${student1} és ${student2}`);
-        const body = encodeURIComponent(getResultSummaryText());
-        document.getElementById('emailLinkBtn').href = `mailto:balogh.bence@szeged.piarista.hu?subject=${subject}&body=${body}`;
-
         document.getElementById('gameScreen').classList.add('hidden');
-        document.getElementById('teacherBar').style.display = 'none';
         document.getElementById('victoryScreen').classList.remove('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
@@ -1585,40 +1557,36 @@
     function copyResultText() {
       const text = getResultSummaryText();
       const copyFb = document.getElementById('copyFeedback');
-      navigator.clipboard.writeText(text).then(() => {
-        copyFb.className = 'feedback success';
-        copyFb.textContent = '✅ Az eredmény szövege a vágólapra másolva! Illesszétek be egy új e-mailbe a balogh.bence@szeged.piarista.hu címre.';
-      }).catch(() => {
-        copyFb.className = 'feedback error';
-        copyFb.textContent = '❌ A böngésző nem engedélyezte az automatikus másolást, kérjük jelöljétek ki kézzel a fenti adatokat.';
-      });
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          copyFb.className = 'feedback success';
+          copyFb.textContent = '✅ Az eredmény szövege a vágólapra másolva! Illesszétek be egy e-mailbe a balogh.bence@szeged.piarista.hu címre.';
+        }).catch(() => {
+          fallbackCopyText(text, copyFb);
+        });
+      } else {
+        fallbackCopyText(text, copyFb);
+      }
     }
 
-    // --- TANÁRI TESZT / PRESET ---
-    function fillCurrentPreset() {
-      if (currentGate === 1 && !unlockedGates[1]) {
-        gate1Items.sort((a, b) => a.order - b.order);
-        renderGate1();
-      } else if (currentGate === 2 && !unlockedGates[2]) {
-        gate2Data.forEach(item => { item.location = item.correct; });
-        renderGate2();
-      } else if (currentGate === 3 && !unlockedGates[3]) {
-        gate3Countries.forEach(c => {
-          document.getElementById(`way-${c.num}`).value = c.correctWay;
-          document.getElementById(`actor-${c.num}`).value = c.correctActor;
-        });
-      } else if (currentGate === 4 && !unlockedGates[4]) {
-        document.getElementById('inp-1').value = 'Magyarországra';
-        document.getElementById('inp-2').value = 'NSZK-ba';
-        document.getElementById('inp-3').value = 'Honecker';
-        document.getElementById('inp-4').value = '1989. november 9-én';
-        document.getElementById('inp-5').value = 'Helmut Kohl';
-      } else if (currentGate === 5 && !unlockedGates[5]) {
-        gate5Questions.forEach((q, idx) => {
-          const radio = document.querySelector(`input[name="q5-${idx}"][value="${q.correct}"]`);
-          if (radio) radio.checked = true;
-        });
+    function fallbackCopyText(text, copyFb) {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        copyFb.className = 'feedback success';
+        copyFb.textContent = '✅ Az eredmény szövege a vágólapra másolva! Illesszétek be egy e-mailbe a balogh.bence@szeged.piarista.hu címre.';
+      } catch (err) {
+        copyFb.className = 'feedback error';
+        copyFb.textContent = '❌ Az automatikus másolás nem sikerült, kérjük jelöljétek ki kézzel a fenti adatokat.';
       }
+      document.body.removeChild(textArea);
     }
   </script>
 </body>
