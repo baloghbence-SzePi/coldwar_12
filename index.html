@@ -1,912 +1,1625 @@
 <!DOCTYPE html>
 <html lang="hu">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kódnév: Vörös Akta – Online Szabadulószoba</title>
-    <style>
-        :root {
-            --bg-dark: #0f172a;
-            --card-bg: #1e293b;
-            --card-border: #334155;
-            --accent-red: #ef4444;
-            --accent-green: #10b981;
-            --accent-amber: #f59e0b;
-            --text-main: #f1f5f9;
-            --text-muted: #94a3b8;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kódnév: Vörös Akta – Menekülés a hidegháború archívumából</title>
+  <style>
+    :root {
+      --bg-dark: #0c1015;
+      --bg-panel: #151b23;
+      --bg-card: #1d2530;
+      --bg-card-hover: #25303f;
+      --border-color: #2f3b4c;
+      --crimson: #d62828;
+      --crimson-glow: rgba(214, 40, 40, 0.35);
+      --amber: #f59e0b;
+      --terminal-green: #10b981;
+      --terminal-green-bg: rgba(16, 185, 129, 0.12);
+      --text-main: #e6edf3;
+      --text-muted: #9aa5b4;
+      --font-sans: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+      --font-mono: 'Consolas', 'Courier New', monospace;
+    }
 
-        * {
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-            line-height: 1.6;
-        }
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(214, 40, 40, 0.08), transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.06), transparent 40%);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding-bottom: 4rem;
+    }
 
-        .container {
-            max-width: 850px;
-            margin: 0 auto;
-        }
+    /* Felső állapotsáv */
+    .hud-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(12, 16, 21, 0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 2px solid var(--crimson);
+      padding: 0.7rem 1rem;
+      display: none;
+    }
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-left: 5px solid var(--accent-red);
-            padding: 15px 25px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
+    .hud-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.65rem;
+    }
 
-        .header-title {
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: bold;
-            font-size: 1.2rem;
-            color: var(--accent-red);
-            letter-spacing: 1px;
-        }
+    .hud-team {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      font-size: 0.88rem;
+      color: var(--text-main);
+    }
 
-        .timer-box {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 1.2rem;
-            background: #020617;
-            padding: 8px 15px;
-            border-radius: 6px;
-            border: 1px solid var(--accent-amber);
-            color: var(--accent-amber);
-            font-weight: bold;
-        }
+    .stamp-badge {
+      background: var(--crimson);
+      color: #fff;
+      padding: 0.15rem 0.45rem;
+      font-family: var(--font-mono);
+      font-weight: bold;
+      font-size: 0.74rem;
+      border-radius: 3px;
+      letter-spacing: 1px;
+    }
 
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 10px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-        }
+    .timer-box {
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      font-weight: bold;
+      background: #080b0e;
+      border: 1px solid var(--border-color);
+      padding: 0.28rem 0.8rem;
+      border-radius: 6px;
+      color: var(--amber);
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
 
-        .hidden {
-            display: none !important;
-        }
+    .timer-box.urgent {
+      color: #ff4d4d;
+      border-color: var(--crimson);
+      animation: pulse 1s infinite;
+    }
 
-        h1, h2, h3 {
-            margin-top: 0;
-            color: #ffffff;
-        }
+    .timer-box.practice {
+      color: var(--terminal-green);
+      font-size: 0.92rem;
+    }
 
-        .zsilip-badge {
-            display: inline-block;
-            background: var(--accent-red);
-            color: white;
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: bold;
-            padding: 3px 10px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            margin-bottom: 10px;
-        }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 rgba(214, 40, 40, 0); }
+      50% { box-shadow: 0 0 12px var(--crimson-glow); }
+    }
 
-        .story-box {
-            background: rgba(15, 23, 42, 0.7);
-            border-left: 4px solid var(--accent-amber);
-            padding: 15px 20px;
-            margin: 15px 0 20px 0;
-            font-style: italic;
-            color: #e2e8f0;
-        }
+    .locks-progress {
+      display: flex;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
 
-        .input-group {
-            margin-bottom: 15px;
-        }
+    .lock-pill {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      padding: 0.22rem 0.5rem;
+      border-radius: 4px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+    }
 
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            color: var(--text-main);
-        }
+    .lock-pill.active {
+      border-color: var(--amber);
+      color: var(--amber);
+      font-weight: bold;
+    }
 
-        input[type="text"], select {
-            width: 100%;
-            padding: 10px 12px;
-            border-radius: 6px;
-            border: 1px solid #475569;
-            background-color: #0f172a;
-            color: #ffffff;
-            font-size: 1rem;
-        }
+    .lock-pill.unlocked {
+      background: var(--terminal-green-bg);
+      border-color: var(--terminal-green);
+      color: var(--terminal-green);
+      font-weight: bold;
+    }
 
-        input[type="text"]:focus, select:focus {
-            outline: none;
-            border-color: var(--accent-amber);
-        }
+    /* Fő konténer */
+    .container {
+      max-width: 960px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
 
-        button {
-            background-color: var(--accent-red);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
+    /* Bevezető és végképernyők */
+    .dossier-box {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-top: 4px solid var(--crimson);
+      border-radius: 8px;
+      padding: 2rem;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+      position: relative;
+    }
 
-        button:hover {
-            background-color: #dc2626;
-        }
+    .top-secret-stamp {
+      display: inline-block;
+      border: 2px solid var(--crimson);
+      color: var(--crimson);
+      font-family: var(--font-mono);
+      font-weight: bold;
+      padding: 0.2rem 0.7rem;
+      font-size: 0.85rem;
+      letter-spacing: 2px;
+      transform: rotate(-2deg);
+      margin-bottom: 1rem;
+    }
 
-        button.secondary-btn {
-            background-color: #334155;
-            padding: 6px 12px;
-            font-size: 0.9rem;
-        }
+    h1 {
+      font-size: 1.85rem;
+      margin-bottom: 0.45rem;
+      color: #fff;
+    }
 
-        button.secondary-btn:hover {
-            background-color: #475569;
-        }
+    .subtitle {
+      font-family: var(--font-mono);
+      color: var(--amber);
+      font-size: 0.95rem;
+      margin-bottom: 1.4rem;
+    }
 
-        button.success-btn {
-            background-color: var(--accent-green);
-        }
+    .story-text {
+      background: rgba(0, 0, 0, 0.25);
+      border-left: 3px solid var(--amber);
+      padding: 1.2rem;
+      margin-bottom: 1.5rem;
+      font-size: 1.02rem;
+    }
 
-        button.success-btn:hover {
-            background-color: #059669;
-        }
+    /* Csapatregisztrációs űrlap */
+    .team-form {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
 
-        .feedback {
-            margin-top: 15px;
-            padding: 12px;
-            border-radius: 6px;
-            font-weight: bold;
-        }
+    .team-form-title {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      color: var(--amber);
+      margin-bottom: 0.85rem;
+      letter-spacing: 0.5px;
+    }
 
-        .feedback.error {
-            background-color: rgba(239, 68, 68, 0.15);
-            border: 1px solid var(--accent-red);
-            color: #fca5a5;
-        }
+    .team-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
 
-        .feedback.success {
-            background-color: rgba(16, 185, 129, 0.15);
-            border: 1px solid var(--accent-green);
-            color: #6ee7b7;
-        }
+    @media (max-width: 640px) {
+      .team-inputs {
+        grid-template-columns: 1fr;
+      }
+    }
 
-        /* 1. feladat: Sorrend */
-        .sortable-list {
-            list-style: none;
-            padding: 0;
-            margin: 15px 0;
-        }
+    .input-group label {
+      display: block;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+    }
 
-        .sortable-item {
-            background: #0f172a;
-            border: 1px solid #475569;
-            padding: 12px 15px;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-            cursor: grab;
-        }
+    .text-input {
+      width: 100%;
+      background: #0d1117;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.98rem;
+      font-family: var(--font-sans);
+    }
 
-        .sortable-item:active {
-            cursor: grabbing;
-        }
+    .text-input:focus {
+      outline: none;
+      border-color: var(--amber);
+    }
 
-        .sort-controls {
-            display: flex;
-            gap: 5px;
-            flex-shrink: 0;
-        }
+    /* Gombok */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.4rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      font-family: var(--font-sans);
+      text-decoration: none;
+    }
 
-        /* 2. feladat: Kategóriák */
-        .category-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 15px;
-        }
+    .btn-primary {
+      background: var(--crimson);
+      color: #fff;
+    }
 
-        @media (max-width: 650px) {
-            .category-grid {
-                grid-template-columns: 1fr;
-            }
-        }
+    .btn-primary:hover {
+      background: #b91c1c;
+      transform: translateY(-1px);
+    }
 
-        .dropzone {
-            background: #0f172a;
-            border: 2px dashed #475569;
-            border-radius: 8px;
-            padding: 15px;
-            min-height: 220px;
-        }
+    .btn-check {
+      background: var(--terminal-green);
+      color: #06281e;
+    }
 
-        .dropzone h4 {
-            margin-top: 0;
-            text-align: center;
-            color: var(--accent-amber);
-            border-bottom: 1px solid #334155;
-            padding-bottom: 8px;
-        }
+    .btn-check:hover {
+      background: #0ea572;
+    }
 
-        .drag-pool {
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-        }
+    .btn-secondary {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
 
-        .cat-item {
-            background: #1e293b;
-            border: 1px solid #64748b;
-            padding: 10px 12px;
-            margin-bottom: 8px;
-            border-radius: 6px;
-            cursor: grab;
-            font-size: 0.95rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-        }
+    .btn-secondary:hover {
+      background: var(--bg-card-hover);
+    }
 
-        .cat-btns {
-            display: flex;
-            gap: 4px;
-            flex-shrink: 0;
-        }
+    .btn-sm {
+      padding: 0.35rem 0.65rem;
+      font-size: 0.85rem;
+    }
 
-        .cat-btns button {
-            padding: 4px 8px;
-            font-size: 0.75rem;
-            background: #334155;
-        }
+    /* Zsilip kártyák */
+    .gate-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 1.75rem;
+      overflow: hidden;
+      transition: border-color 0.3s ease;
+    }
 
-        /* 3. feladat: Párosítás */
-        .match-row {
-            background: #0f172a;
-            border: 1px solid #334155;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-        }
+    .gate-card.active {
+      border-color: var(--amber);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
 
-        .match-country {
-            font-weight: bold;
-            font-size: 1.1rem;
-            color: var(--accent-amber);
-            margin-bottom: 8px;
-        }
+    .gate-card.unlocked {
+      border-color: var(--terminal-green);
+    }
 
-        /* 4. feladat: Hibakereső */
-        .error-text-box {
-            background: #0f172a;
-            border: 1px solid #475569;
-            padding: 18px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 1.05rem;
-            line-height: 1.8;
-        }
+    .gate-card.locked {
+      opacity: 0.55;
+    }
 
-        .err-highlight {
-            background: rgba(239, 68, 68, 0.25);
-            border-bottom: 2px dashed var(--accent-red);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: bold;
-            color: #fca5a5;
-        }
+    .gate-header {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 1.1rem 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
 
-        .fix-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
+    .gate-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
 
-        @media (max-width: 600px) {
-            .fix-grid {
-                grid-template-columns: 1fr;
-            }
-        }
+    .gate-topic {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
 
-        /* 5. feladat: Kvíz */
-        .quiz-q {
-            background: #0f172a;
-            border: 1px solid #334155;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
+    .gate-status {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 4px;
+      background: var(--bg-card);
+    }
 
-        .quiz-option {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            margin: 8px 0;
-            cursor: pointer;
-            font-weight: normal;
-        }
+    .gate-card.unlocked .gate-status {
+      background: var(--terminal-green-bg);
+      color: var(--terminal-green);
+      border: 1px solid var(--terminal-green);
+    }
 
-        .quiz-option input {
-            margin-top: 5px;
-        }
+    .gate-body {
+      padding: 1.5rem;
+    }
 
-        .email-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 20px;
-        }
+    .instruction {
+      margin-bottom: 1.25rem;
+      color: #d0d7de;
+    }
 
-        .email-btn {
-            display: inline-block;
-            text-decoration: none;
-            background-color: var(--accent-green);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 6px;
-            font-weight: bold;
-        }
+    /* Visszajelző dobozok */
+    .feedback {
+      margin-top: 1rem;
+      padding: 0.9rem 1.1rem;
+      border-radius: 6px;
+      font-weight: 500;
+      display: none;
+    }
 
-        .email-btn.gmail {
-            background-color: #2563eb;
-        }
-    </style>
+    .feedback.error {
+      display: block;
+      background: rgba(214, 40, 40, 0.15);
+      border: 1px solid var(--crimson);
+      color: #ff8585;
+      animation: shake 0.35s ease;
+    }
+
+    .feedback.success {
+      display: block;
+      background: var(--terminal-green-bg);
+      border: 1px solid var(--terminal-green);
+      color: #6ee7b7;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    /* 1. Zsilip: Sorbarendezés (kód nélkül) */
+    .sortable-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .sort-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.8rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.85rem;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .sort-item:hover {
+      background: var(--bg-card-hover);
+      border-color: #4a5b73;
+    }
+
+    .sort-item.dragging {
+      opacity: 0.5;
+      border-style: dashed;
+    }
+
+    .sort-left {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .drag-handle {
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      padding: 0.15rem 0.35rem;
+    }
+
+    .sort-controls {
+      display: flex;
+      gap: 0.3rem;
+      flex-shrink: 0;
+    }
+
+    /* 2. Zsilip: Kategória-besorolás */
+    .pool-box {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px dashed var(--border-color);
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .pool-title {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--amber);
+      margin-bottom: 0.75rem;
+    }
+
+    .columns-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    @media (max-width: 720px) {
+      .columns-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .drop-column {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 1rem;
+      min-height: 210px;
+    }
+
+    .drop-column h4 {
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.75rem;
+      font-size: 1rem;
+      color: #fff;
+    }
+
+    .drop-column.west h4 { color: #60a5fa; }
+    .drop-column.east h4 { color: #f87171; }
+
+    .cat-item {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      padding: 0.65rem 0.8rem;
+      margin-bottom: 0.55rem;
+      font-size: 0.92rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .cat-actions {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    /* 3. Zsilip: Hármas párosítás */
+    .legend-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    @media (max-width: 720px) {
+      .legend-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .legend-box {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.9rem;
+      font-size: 0.88rem;
+    }
+
+    .legend-box h4 {
+      color: var(--amber);
+      font-family: var(--font-mono);
+      margin-bottom: 0.5rem;
+      font-size: 0.88rem;
+    }
+
+    .legend-box ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+
+    .match-row {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.85rem 1rem;
+      margin-bottom: 0.65rem;
+      display: grid;
+      grid-template-columns: 160px 1fr 1fr;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    @media (max-width: 720px) {
+      .match-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .country-label {
+      font-weight: 700;
+      color: #fff;
+      font-size: 1rem;
+    }
+
+    select.dossier-select {
+      width: 100%;
+      background: #0d1117;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      padding: 0.55rem 0.65rem;
+      font-size: 0.9rem;
+      font-family: var(--font-sans);
+      cursor: pointer;
+    }
+
+    select.dossier-select:focus {
+      outline: none;
+      border-color: var(--amber);
+    }
+
+    /* 4. Zsilip: Szöveges hibajavítás */
+    .sabotaged-doc {
+      background: #10151c;
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--crimson);
+      padding: 1.35rem;
+      border-radius: 6px;
+      font-size: 1.02rem;
+      line-height: 1.85;
+      margin-bottom: 1.25rem;
+    }
+
+    .error-highlight {
+      background: rgba(214, 40, 40, 0.22);
+      color: #ffd166;
+      border-bottom: 1px dashed var(--amber);
+      padding: 0.08rem 0.35rem;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+
+    .fix-inputs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .fix-field {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.75rem;
+    }
+
+    .fix-field label {
+      display: block;
+      font-size: 0.83rem;
+      color: var(--amber);
+      font-family: var(--font-mono);
+      margin-bottom: 0.35rem;
+    }
+
+    .fix-field input.verified {
+      border-color: var(--terminal-green);
+      background: var(--terminal-green-bg);
+      color: var(--terminal-green);
+      font-weight: 600;
+    }
+
+    /* 5. Zsilip: Zárókvíz */
+    .quiz-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 1rem 1.15rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .quiz-q {
+      font-weight: 600;
+      margin-bottom: 0.65rem;
+      color: #fff;
+    }
+
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .quiz-opt {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      padding: 0.45rem 0.65rem;
+      border-radius: 5px;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+
+    .quiz-opt:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .quiz-opt input {
+      margin-top: 0.28rem;
+      accent-color: var(--amber);
+    }
+
+    /* Tanári gyorsvezérlő */
+    .teacher-bar {
+      max-width: 960px;
+      margin: 2rem auto 0;
+      padding: 0 1rem;
+      display: none;
+      justify-content: flex-end;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Győzelmi kártya */
+    .certificate-box {
+      background: #0d1218;
+      border: 1px solid var(--terminal-green);
+      border-radius: 6px;
+      padding: 1.35rem;
+      margin: 1.25rem 0;
+    }
+
+    .cert-row {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .cert-row:last-child {
+      border-bottom: none;
+    }
+
+    .cert-label {
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+    }
+
+    .cert-val {
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+    }
+  </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <div class="header-title">KÓDNÉV: VÖRÖS AKTA</div>
-        <div id="pair-display" style="color: var(--text-muted); font-size: 0.95rem;"></div>
-        <div class="timer-box">IDŐ: <span id="timer">00:00</span></div>
-    </header>
+  <!-- Felső állapotsáv (HUD) -->
+  <header class="hud-bar" id="hudBar">
+    <div class="hud-inner">
+      <div class="hud-team">
+        <span class="stamp-badge">VÖRÖS AKTA</span>
+        <span id="hudNames">Csapat: -</span>
+      </div>
+      <div class="locks-progress" id="locksProgress">
+        <span class="lock-pill active" id="pill-1">1. Zsilip</span>
+        <span class="lock-pill" id="pill-2">2. Zsilip</span>
+        <span class="lock-pill" id="pill-3">3. Zsilip</span>
+        <span class="lock-pill" id="pill-4">4. Zsilip</span>
+        <span class="lock-pill" id="pill-5">5. Zsilip</span>
+      </div>
+      <div class="timer-box" id="timerBox">
+        <span>⏱</span>
+        <span id="timerDisplay">1. zsilip: 05:00</span>
+      </div>
+    </div>
+  </header>
 
-    <!-- KEZDŐKÉPERNYŐ -->
-    <div id="screen-start" class="card">
-        <span class="zsilip-badge">TITKOSÍTOTT KÜLDETÉS</span>
-        <h1>Menekülés a hidegháború archívumából</h1>
-        <div class="story-box">
-            <strong>1991. december 25., 18:30 – Moszkva, a Kreml titkos irattára.</strong><br>
-            Néhány perccel ezelőtt Mihail Gorbacsov bejelentette lemondását, a Szovjetunió pedig megszűnt létezni. A birodalom összeomlásának zűrzavarában az archívum biztonsági rendszere vészüzemmódba kapcsolt: az ajtók lezáródtak, és elindult a számláló. A kiosztott öt hírszerzési jelentés tartalmazza az összes nyomot. Elemezzétek őket párban, törjétek fel az öt zárat, és jussatok ki a hidegháborúból!
-        </div>
+  <main class="container">
 
-        <div class="input-group">
-            <label for="student1">1. nyomozó (diák) teljes neve:</label>
-            <input type="text" id="student1" placeholder="Pl. Kiss Anna">
-        </div>
-        <div class="input-group">
-            <label for="student2">2. nyomozó (diák) teljes neve:</label>
-            <input type="text" id="student2" placeholder="Pl. Nagy Péter">
-        </div>
+    <!-- 0. BEVEZETŐ ÉS PÁROS REGISZTRÁCIÓ -->
+    <section class="dossier-box" id="introScreen">
+      <div class="top-secret-stamp">SZIGORÚAN TITKOS // 1991.12.25.</div>
+      <h1>Kódnév: Vörös Akta</h1>
+      <div class="subtitle">Menekülés a hidegháború archívumából</div>
+      <div class="story-text">
+        <p><strong>1991. december 25., 18:30 – Moszkva, a Kreml titkos irattára.</strong></p>
+        <p style="margin-top: 0.65rem;">
+          Néhány perccel ezelőtt Mihail Gorbacsov bejelentette lemondását, a Szovjetunió pedig megszűnt létezni. 
+          A birodalom összeomlásának zűrzavarában az archívum biztonsági rendszere vészüzemmódba kapcsolt: 
+          az ajtók lezáródtak, és elindult a visszaszámlálás.
+        </p>
+        <p style="margin-top: 0.65rem;">
+          Minden egyes információs zsilip feltörésére pontosan <strong>5 percetek</strong> van. 
+          Az 5. zsilip feltörésekor az óra megáll, és rögzíthetitek a párosotok megoldási idejét.
+        </p>
+      </div>
 
-        <button onclick="startGame()">Küldetés indítása és az óra elindítása</button>
-        <div id="start-error" class="feedback error hidden">Kérlek, adjátok meg mindkét diák nevét az induláshoz!</div>
+      <div class="team-form">
+        <div class="team-form-title">ÜGYNÖKPÁROS AZONOSÍTÁSA (KÖTELEZŐ A BELÉPÉSHEZ):</div>
+        <div class="team-inputs">
+          <div class="input-group">
+            <label for="member1">1. csapattag teljes neve:</label>
+            <input type="text" id="member1" class="text-input" placeholder="Pl. Kiss Anna">
+          </div>
+          <div class="input-group">
+            <label for="member2">2. csapattag teljes neve:</label>
+            <input type="text" id="member2" class="text-input" placeholder="Pl. Nagy Péter">
+          </div>
+        </div>
+        <div class="feedback" id="introFeedback"></div>
+      </div>
+
+      <button class="btn btn-primary" onclick="startGame()">
+        ▶ Küldetés indítása és időmérő elindítása
+      </button>
+    </section>
+
+    <!-- JÁTÉKTÉR (5 ZSILIP) -->
+    <div id="gameScreen" class="hidden">
+
+      <!-- 1. ZSILIP -->
+      <section class="gate-card active" id="gate-1">
+        <div class="gate-header">
+          <div>
+            <div class="gate-title">1. zsilip: A „Forró drót” dekódolása</div>
+            <div class="gate-topic">Téma: Az enyhülés évei (1963–1979) • Időkeret: 5 perc</div>
+          </div>
+          <div class="gate-status" id="status-1">🔒 AKTÍV ZSILIP (05:00)</div>
+        </div>
+        <div class="gate-body" id="body-1">
+          <p class="instruction">
+            Az alábbi öt történelmi esemény összekeveredett az archívum adatbázisában. Állítsátok őket helyes időrendi sorrendbe 
+            <strong>a legkorábbitól a legkésőbbiig</strong> (húzással vagy a nyilakkal)! A rendszer csak akkor nyitja meg a következő zsilipet, 
+            ha mind az öt eseményt pontos időrendbe raktátok.
+          </p>
+          <div class="sortable-list" id="sortableList"></div>
+          <div>
+            <button class="btn btn-check" onclick="checkGate1()">Időrend ellenőrzése</button>
+          </div>
+          <div class="feedback" id="feedback-1"></div>
+        </div>
+      </section>
+
+      <!-- 2. ZSILIP -->
+      <section class="gate-card locked" id="gate-2">
+        <div class="gate-header">
+          <div>
+            <div class="gate-title">2. zsilip: Az adósságspirál csapdája</div>
+            <div class="gate-topic">Téma: Az olajválság és hatásai (1973–1979) • Időkeret: 5 perc</div>
+          </div>
+          <div class="gate-status" id="status-2">🔒 ZÁROLVA (Nyisd ki az 1. zsilipet)</div>
+        </div>
+        <div class="gate-body hidden" id="body-2">
+          <p class="instruction">
+            Az 1970-es évek olajválságai gyökeresen eltérő reakciókat váltottak ki a világ két tömbjéből. Válogassátok szét az alábbi 
+            nyolc gazdasági folyamatot és következményt aszerint, hogy a <strong>Nyugati blokkra</strong> vagy a <strong>Keleti blokkra (és Magyarországra)</strong> voltak jellemzőek!
+          </p>
+          <div class="pool-box" id="poolBox">
+            <div class="pool-title">BESOROLÁSRA VÁRÓ JELENTÉSELEMEK:</div>
+            <div id="poolItems"></div>
+          </div>
+          <div class="columns-grid">
+            <div class="drop-column west" id="colWest" ondragover="allowDrop(event)" ondrop="dropToCol(event, 'west')">
+              <h4>🌐 Nyugati blokk válasza</h4>
+              <div id="westItems"></div>
+            </div>
+            <div class="drop-column east" id="colEast" ondragover="allowDrop(event)" ondrop="dropToCol(event, 'east')">
+              <h4>🚩 Keleti blokk és Magyarország válasza</h4>
+              <div id="eastItems"></div>
+            </div>
+          </div>
+          <button class="btn btn-check" onclick="checkGate2()">Besorolás ellenőrzése</button>
+          <div class="feedback" id="feedback-2"></div>
+        </div>
+      </section>
+
+      <!-- 3. ZSILIP -->
+      <section class="gate-card locked" id="gate-3">
+        <div class="gate-header">
+          <div>
+            <div class="gate-title">3. zsilip: Az annus mirabilis ügynökei</div>
+            <div class="gate-topic">Téma: A közép-kelet-európai rendszerváltozások (1989) • Időkeret: 5 perc</div>
+          </div>
+          <div class="gate-status" id="status-3">🔒 ZÁROLVA (Nyisd ki a 2. zsilipet)</div>
+        </div>
+        <div class="gate-body hidden" id="body-3">
+          <p class="instruction">
+            1989-ben, a csodák évében (annus mirabilis) dominószerűen dőltek meg a térség kommunista diktatúrái. Párosítsátok össze 
+            mind a négy országhoz a rá jellemző <strong>átalakulási formát (betűjel)</strong> és a <strong>kulcsszereplőket/szervezeteket (római szám)</strong>!
+          </p>
+
+          <div class="legend-grid">
+            <div class="legend-box">
+              <h4>2. OSZLOP – AZ ÁTALAKULÁS MÓDJA</h4>
+              <ul>
+                <li><strong>A)</strong> Tömegtüntetések és általános sztrájk által kikényszerített, békés „bársonyos forradalom”.</li>
+                <li><strong>B)</strong> Véres népfelkelés és a diktátor rögtönítélő bíróság általi kivégzése.</li>
+                <li><strong>C)</strong> Tárgyalásos forradalom, amely 1989 júniusában részlegesen szabad választásokhoz és a térség első nem kommunista kormányához vezetett.</li>
+                <li><strong>D)</strong> Tárgyalásos forradalom, amelyet kerekasztal-egyeztetések kísért.</li>
+              </ul>
+            </div>
+            <div class="legend-box">
+              <h4>3. OSZLOP – KULCSSZEREPLŐK ÉS SZERVEZETEK</h4>
+              <ul>
+                <li><strong>I.</strong> Nemzeti Kerekasztal</li>
+                <li><strong>II.</strong> Nicolae Ceaușescu</li>
+                <li><strong>III.</strong> Lech Wałęsa és a Szolidaritás</li>
+                <li><strong>IV.</strong> Václav Havel és a Polgári Fórum</li>
+              </ul>
+            </div>
+          </div>
+
+          <div id="matchingContainer"></div>
+
+          <button class="btn btn-check" onclick="checkGate3()">Párosítás ellenőrzése</button>
+          <div class="feedback" id="feedback-3"></div>
+        </div>
+      </section>
+
+      <!-- 4. ZSILIP -->
+      <section class="gate-card locked" id="gate-4">
+        <div class="gate-header">
+          <div>
+            <div class="gate-title">4. zsilip: Áttörés a betonfalon</div>
+            <div class="gate-topic">Téma: Németország újraegyesítése (1989–1990) • Időkeret: 5 perc</div>
+          </div>
+          <div class="gate-status" id="status-4">🔒 ZÁROLVA (Nyisd ki a 3. zsilipet)</div>
+        </div>
+        <div class="gate-body hidden" id="body-4">
+          <p class="instruction">
+            Egy szabotőr belenyúlt a német újraegyesítésről szóló titkos jelentésbe, és <strong>5 tárgyi hibát</strong> rejtett el benne. 
+            Írjátok be a megfelelő mezőkbe a sorszámmal jelölt, hibás részek pontos, helyes megfejtését! 
+            <em>(A 3. hibánál elég csak a vezetéknevet beírni.)</em>
+          </p>
+
+          <div class="sabotaged-doc">
+            „1989 nyarán keletnémet állampolgárok tízezrei utaztak 
+            <span class="error-highlight">[1] Csehszlovákiába</span>, 
+            hogy onnan Ausztrián keresztül az 
+            <span class="error-highlight">[2] NDK-ba</span> 
+            jussanak. Az augusztusi Páneurópai Piknik után a magyar kormány szeptember 10-én megnyitotta a nyugati határt. 
+            Ősszel százezres tüntetések kezdődtek, így a megrendült vezetés leváltotta 
+            <span class="error-highlight">[3] Mihail Gorbacsov</span> 
+            pártfőtitkárt. A történelmi fordulat 
+            <span class="error-highlight">[4] 1989. október 23-án</span> 
+            érkezett el, amikor a határőrök megnyitották az átkelőket, és megkezdődött a berlini fal lebontása. 
+            A nyugatnémet kancellár, 
+            <span class="error-highlight">[5] Willy Brandt</span> 
+            azonnal meghirdette a német egység programját. Miután a győztes nagyhatalmak aláírták a „kettő plusz négy” szerződést, 
+            1990. október 3-án megvalósult Németország egyesítése.”
+          </div>
+
+          <div class="fix-inputs-grid">
+            <div class="fix-field">
+              <label for="inp-1">[1] „Csehszlovákiába” helyett:</label>
+              <input type="text" id="inp-1" class="text-input" placeholder="Helyes megfejtés...">
+            </div>
+            <div class="fix-field">
+              <label for="inp-2">[2] „NDK-ba” helyett:</label>
+              <input type="text" id="inp-2" class="text-input" placeholder="Helyes megfejtés...">
+            </div>
+            <div class="fix-field">
+              <label for="inp-3">[3] „Mihail Gorbacsov” helyett (vezetéknév):</label>
+              <input type="text" id="inp-3" class="text-input" placeholder="Helyes vezetéknév...">
+            </div>
+            <div class="fix-field">
+              <label for="inp-4">[4] „1989. október 23-án” helyett:</label>
+              <input type="text" id="inp-4" class="text-input" placeholder="Helyes dátum...">
+            </div>
+            <div class="fix-field">
+              <label for="inp-5">[5] „Willy Brandt” helyett:</label>
+              <input type="text" id="inp-5" class="text-input" placeholder="Helyes név...">
+            </div>
+          </div>
+
+          <button class="btn btn-check" onclick="checkGate4()">Javítások ellenőrzése</button>
+          <div class="feedback" id="feedback-4"></div>
+        </div>
+      </section>
+
+      <!-- 5. ZSILIP -->
+      <section class="gate-card locked" id="gate-5">
+        <div class="gate-header">
+          <div>
+            <div class="gate-title">5. zsilip: A Kreml utolsó zárja</div>
+            <div class="gate-topic">Téma: A Szovjetunió felbomlása (1985–1991) • Időkeret: 5 perc</div>
+          </div>
+          <div class="gate-status" id="status-5">🔒 ZÁROLVA (Nyisd ki a 4. zsilipet)</div>
+        </div>
+        <div class="gate-body hidden" id="body-5">
+          <p class="instruction">
+            Elértetek a kijárati ajtóhoz! Válaszoljatok helyesen mind a négy zárókérdésre az ötödik hírszerzési jelentés alapján, 
+            hogy kinyíljon a kijárat, és rögzíthessétek a csapatotok eredményét.
+          </p>
+
+          <div id="quizContainer"></div>
+
+          <div>
+            <button class="btn btn-primary" onclick="checkGate5()">🔓 Kijárati ajtó nyitása és idő megállítása</button>
+          </div>
+          <div class="feedback" id="feedback-5"></div>
+        </div>
+      </section>
+
     </div>
 
-    <!-- 1. ZSILIP -->
-    <div id="task-1" class="card hidden">
-        <span class="zsilip-badge">1. ZSILIP / 5</span>
-        <h2>A „Forró drót” dekódolása</h2>
-        <p>Az alábbi öt történelmi esemény összekeveredett az archívum adatbázisában. Állítsátok őket <strong>helyes időrendi sorrendbe a legkorábbitól a legkésőbbiig</strong> (felül a legkorábbi, alul a legkésőbbi)! A kártyákat egérrel húzhatjátok, vagy a jobb oldali nyilakkal is mozgathatjátok.</p>
+    <!-- GYŐZELMI ÉS EREDMÉNYKÜLDŐ KÉPERNYŐ -->
+    <section class="dossier-box hidden" id="victoryScreen" style="border-top-color: var(--terminal-green);">
+      <div class="top-secret-stamp" style="border-color: var(--terminal-green); color: var(--terminal-green);">
+        KÜLDETÉS TELJESÍTVE // KIJÁRAT NYITVA
+      </div>
+      <h1>Sikeresen kijutottatok a Kreml archívumából!</h1>
+      <div class="subtitle">Az időmérő óra megállt. Küldjétek el a párosotok eredményét a tanárnak!</div>
 
-        <ul id="sortable-list" class="sortable-list">
-            <li class="sortable-item" draggable="true" data-id="3">
-                <span>A német–német alapszerződés megkötése, amelyben az NSZK és az NDK kölcsönösen elismerte egymást.</span>
-                <div class="sort-controls">
-                    <button type="button" class="secondary-btn" onclick="moveUp(this)">▲</button>
-                    <button type="button" class="secondary-btn" onclick="moveDown(this)">▼</button>
-                </div>
-            </li>
-            <li class="sortable-item" draggable="true" data-id="5">
-                <span>A szovjet hadsereg bevonulása Afganisztánba, amely véget vetett az enyhülés korszakának.</span>
-                <div class="sort-controls">
-                    <button type="button" class="secondary-btn" onclick="moveUp(this)">▲</button>
-                    <button type="button" class="secondary-btn" onclick="moveDown(this)">▼</button>
-                </div>
-            </li>
-            <li class="sortable-item" draggable="true" data-id="1">
-                <span>A kubai rakétaválság lezárása és a Washington–Moszkva közötti „forró drót” kiépítése.</span>
-                <div class="sort-controls">
-                    <button type="button" class="secondary-btn" onclick="moveUp(this)">▲</button>
-                    <button type="button" class="secondary-btn" onclick="moveDown(this)">▼</button>
-                </div>
-            </li>
-            <li class="sortable-item" draggable="true" data-id="4">
-                <span>A helsinki záróokmány aláírása 35 állam részvételével.</span>
-                <div class="sort-controls">
-                    <button type="button" class="secondary-btn" onclick="moveUp(this)">▲</button>
-                    <button type="button" class="secondary-btn" onclick="moveDown(this)">▼</button>
-                </div>
-            </li>
-            <li class="sortable-item" draggable="true" data-id="2">
-                <span>A csehszlovákiai „prágai tavasz” leverése és a Brezsnyev-doktrína meghirdetése.</span>
-                <div class="sort-controls">
-                    <button type="button" class="secondary-btn" onclick="moveUp(this)">▲</button>
-                    <button type="button" class="secondary-btn" onclick="moveDown(this)">▼</button>
-                </div>
-            </li>
-        </ul>
-
-        <button onclick="checkTask1()">1. zsilip feltörése</button>
-        <div id="fb-1" class="feedback hidden"></div>
-    </div>
-
-    <!-- 2. ZSILIP -->
-    <div id="task-2" class="card hidden">
-        <span class="zsilip-badge">2. ZSILIP / 5</span>
-        <h2>Az adósságspirál csapdája</h2>
-        <p>Az 1970-es évek olajválságai gyökeresen eltérő reakciókat váltottak ki a világ két tömbjéből. Válogassátok szét az alábbi nyolc gazdasági folyamatot aszerint, hogy a <strong>Nyugati blokkra</strong> vagy a <strong>Keleti blokkra (és Magyarországra)</strong> voltak jellemzőek! (Húzzátok a megfelelő oszlopba, vagy használjátok a Nyugat / Kelet gombokat.)</p>
-
-        <div id="pool-2" class="drag-pool" ondragover="allowDrop(event)" ondrop="dropCat(event, 'pool-2')">
-            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Besorolásra váró elemek:</div>
-            <div class="cat-item" id="c1" draggable="true" ondragstart="dragCat(event)" data-target="west">
-                <span>Benzinjegy-rendszer és autómentes vasárnapok bevezetése.</span>
-                <div class="cat-btns"><button onclick="assignCat('c1','west')">Nyugat</button><button onclick="assignCat('c1','east')">Kelet</button></div>
-            </div>
-            <div class="cat-item" id="c2" draggable="true" ondragstart="dragCat(event)" data-target="east">
-                <span>A magas olajárakból származó extraprofit miatt elhalasztott gazdasági reformok.</span>
-                <div class="cat-btns"><button onclick="assignCat('c2','west')">Nyugat</button><button onclick="assignCat('c2','east')">Kelet</button></div>
-            </div>
-            <div class="cat-item" id="c3" draggable="true" ondragstart="dragCat(event)" data-target="west">
-                <span>A mikroelektronika, a számítástechnika és a szolgáltatószektor előtérbe helyezése.</span>
-                <div class="cat-btns"><button onclick="assignCat('c3','west')">Nyugat</button><button onclick="assignCat('c3','east')">Kelet</button></div>
-            </div>
-            <div class="cat-item" id="c4" draggable="true" ondragstart="dragCat(event)" data-target="east">
-                <span>Súlyos cserearány-romlás a nyersanyagszegénység miatt.</span>
-                <div class="cat-btns"><button onclick="assignCat('c4','west')">Nyugat</button><button onclick="assignCat('c4','east')">Kelet</button></div>
-            </div>
-            <div class="cat-item" id="c5" draggable="true" ondragstart="dragCat(event)" data-target="west">
-                <span>Stagfláció (gazdasági megtorpanás és magas infláció egyszerre) kialakulása.</span>
-                <div class="cat-btns"><button onclick="assignCat('c5','west')">Nyugat</button><button onclick="assignCat('c5','east')">Kelet</button></div>
-            </div>
-            <div class="cat-item" id="c6" draggable="true" ondragstart="dragCat(event)" data-target="east">
-                <span>Nyugati hitelek („petrodollárok”) felvétele az életszínvonal mesterséges fenntartására.</span>
-                <div class="cat-btns"><button onclick="assignCat('c6','west')">Nyugat</button><button onclick="assignCat('c6','east')">Kelet</button></div>
-            </div>
-            <div class="cat-item" id="c7" draggable="true" ondragstart="dragCat(event)" data-target="west">
-                <span>Az állami szerepvállalás csökkentése, neoliberális gazdaságpolitikai fordulat.</span>
-                <div class="cat-btns"><button onclick="assignCat('c7','west')">Nyugat</button><button onclick="assignCat('c7','east')">Kelet</button></div>
-            </div>
-            <div class="cat-item" id="c8" draggable="true" ondragstart="dragCat(event)" data-target="east">
-                <span>Adósságspirál kialakulása a nyolcvanas évekre.</span>
-                <div class="cat-btns"><button onclick="assignCat('c8','west')">Nyugat</button><button onclick="assignCat('c8','east')">Kelet</button></div>
-            </div>
+      <div class="certificate-box">
+        <div class="cert-row">
+          <span class="cert-label">1. CSAPATTAG NEVE:</span>
+          <span class="cert-val" id="resMember1">-</span>
         </div>
-
-        <div class="category-grid">
-            <div id="west" class="dropzone" ondragover="allowDrop(event)" ondrop="dropCat(event, 'west')">
-                <h4>Nyugati blokk válasza</h4>
-            </div>
-            <div id="east" class="dropzone" ondragover="allowDrop(event)" ondrop="dropCat(event, 'east')">
-                <h4>Keleti blokk / Magyarország válasza</h4>
-            </div>
+        <div class="cert-row">
+          <span class="cert-label">2. CSAPATTAG NEVE:</span>
+          <span class="cert-val" id="resMember2">-</span>
         </div>
-
-        <br>
-        <button onclick="checkTask2()">2. zsilip feltörése</button>
-        <div id="fb-2" class="feedback hidden"></div>
-    </div>
-
-    <!-- 3. ZSILIP -->
-    <div id="task-3" class="card hidden">
-        <span class="zsilip-badge">3. ZSILIP / 5</span>
-        <h2>Az <em>annus mirabilis</em> ügynökei</h2>
-        <p>1989-ben, a csodák évében dominószerűen dőltek meg a térség kommunista diktatúrái. Párosítsátok össze mind a négy országhoz a rá jellemző átalakulási formát és a kulcsszereplőket/szervezeteket!</p>
-
-        <div class="match-row">
-            <div class="match-country">1. Lengyelország</div>
-            <label>Átalakulás módja:</label>
-            <select id="m1-mode">
-                <option value="">-- Válasszatok! --</option>
-                <option value="A">Tömegtüntetések és általános sztrájk által kikényszerített, békés „bársonyos forradalom”.</option>
-                <option value="B">Véres népfelkelés és a diktátor rögtönítélő bíróság általi kivégzése.</option>
-                <option value="C">Tárgyalásos forradalom, amely 1989 júniusában részlegesen szabad választásokhoz és a térség első nem kommunista kormányához vezetett.</option>
-                <option value="D">Tárgyalásos forradalom, amelyet kerekasztal-egyeztetések, Nagy Imre újratemetése és a vasfüggöny lebontása kísért.</option>
-            </select>
-            <label style="margin-top:8px;">Kulcsszereplők és szervezetek:</label>
-            <select id="m1-person">
-                <option value="">-- Válasszatok! --</option>
-                <option value="I">Nemzeti Kerekasztal és Horn Gyula külügyminiszter</option>
-                <option value="II">Nicolae Ceaușescu és Tőkés László református lelkész</option>
-                <option value="III">Lech Wałęsa, a Szolidaritás szakszervezet és II. János Pál pápa</option>
-                <option value="IV">Václav Havel és a Polgári Fórum</option>
-            </select>
+        <div class="cert-row">
+          <span class="cert-label">PONTOS MEGOLDÁSI IDŐ:</span>
+          <span class="cert-val" id="resTotalTime" style="color: var(--terminal-green); font-family: var(--font-mono); font-size: 1.15rem;">00:00</span>
         </div>
-
-        <div class="match-row">
-            <div class="match-country">2. Magyarország</div>
-            <label>Átalakulás módja:</label>
-            <select id="m2-mode">
-                <option value="">-- Válasszatok! --</option>
-                <option value="A">Tömegtüntetések és általános sztrájk által kikényszerített, békés „bársonyos forradalom”.</option>
-                <option value="B">Véres népfelkelés és a diktátor rögtönítélő bíróság általi kivégzése.</option>
-                <option value="C">Tárgyalásos forradalom, amely 1989 júniusában részlegesen szabad választásokhoz és a térség első nem kommunista kormányához vezetett.</option>
-                <option value="D">Tárgyalásos forradalom, amelyet kerekasztal-egyeztetések, Nagy Imre újratemetése és a vasfüggöny lebontása kísért.</option>
-            </select>
-            <label style="margin-top:8px;">Kulcsszereplők és szervezetek:</label>
-            <select id="m2-person">
-                <option value="">-- Válasszatok! --</option>
-                <option value="I">Nemzeti Kerekasztal és Horn Gyula külügyminiszter</option>
-                <option value="II">Nicolae Ceaușescu és Tőkés László református lelkész</option>
-                <option value="III">Lech Wałęsa, a Szolidaritás szakszervezet és II. János Pál pápa</option>
-                <option value="IV">Václav Havel és a Polgári Fórum</option>
-            </select>
+        <div class="cert-row">
+          <span class="cert-label">CÍMZETT TANÁRI E-MAIL:</span>
+          <span class="cert-val" style="font-family: var(--font-mono);">balogh.bence@szeged.piarista.hu</span>
         </div>
+      </div>
 
-        <div class="match-row">
-            <div class="match-country">3. Csehszlovákia</div>
-            <label>Átalakulás módja:</label>
-            <select id="m3-mode">
-                <option value="">-- Válasszatok! --</option>
-                <option value="A">Tömegtüntetések és általános sztrájk által kikényszerített, békés „bársonyos forradalom”.</option>
-                <option value="B">Véres népfelkelés és a diktátor rögtönítélő bíróság általi kivégzése.</option>
-                <option value="C">Tárgyalásos forradalom, amely 1989 júniusában részlegesen szabad választásokhoz és a térség első nem kommunista kormányához vezetett.</option>
-                <option value="D">Tárgyalásos forradalom, amelyet kerekasztal-egyeztetések, Nagy Imre újratemetése és a vasfüggöny lebontása kísért.</option>
-            </select>
-            <label style="margin-top:8px;">Kulcsszereplők és szervezetek:</label>
-            <select id="m3-person">
-                <option value="">-- Válasszatok! --</option>
-                <option value="I">Nemzeti Kerekasztal és Horn Gyula külügyminiszter</option>
-                <option value="II">Nicolae Ceaușescu és Tőkés László református lelkész</option>
-                <option value="III">Lech Wałęsa, a Szolidaritás szakszervezet és II. János Pál pápa</option>
-                <option value="IV">Václav Havel és a Polgári Fórum</option>
-            </select>
-        </div>
+      <div class="action-buttons">
+        <a id="emailLinkBtn" href="#" class="btn btn-check">
+          ✉ Eredmény küldése e-mailben
+        </a>
+        <button class="btn btn-secondary" onclick="copyResultText()">
+          📋 Eredmény szövegének másolása (Webmailhez)
+        </button>
+        <button class="btn btn-secondary" onclick="location.reload()">
+          ↻ Új páros indítása
+        </button>
+      </div>
+      <div class="feedback" id="copyFeedback"></div>
+    </section>
 
-        <div class="match-row">
-            <div class="match-country">4. Románia</div>
-            <label>Átalakulás módja:</label>
-            <select id="m4-mode">
-                <option value="">-- Válasszatok! --</option>
-                <option value="A">Tömegtüntetések és általános sztrájk által kikényszerített, békés „bársonyos forradalom”.</option>
-                <option value="B">Véres népfelkelés és a diktátor rögtönítélő bíróság általi kivégzése.</option>
-                <option value="C">Tárgyalásos forradalom, amely 1989 júniusában részlegesen szabad választásokhoz és a térség első nem kommunista kormányához vezetett.</option>
-                <option value="D">Tárgyalásos forradalom, amelyet kerekasztal-egyeztetések, Nagy Imre újratemetése és a vasfüggöny lebontása kísért.</option>
-            </select>
-            <label style="margin-top:8px;">Kulcsszereplők és szervezetek:</label>
-            <select id="m4-person">
-                <option value="">-- Válasszatok! --</option>
-                <option value="I">Nemzeti Kerekasztal és Horn Gyula külügyminiszter</option>
-                <option value="II">Nicolae Ceaușescu és Tőkés László református lelkész</option>
-                <option value="III">Lech Wałęsa, a Szolidaritás szakszervezet és II. János Pál pápa</option>
-                <option value="IV">Václav Havel és a Polgári Fórum</option>
-            </select>
-        </div>
+    <!-- IDŐTÚLLÉPÉS KÉPERNYŐ -->
+    <section class="dossier-box hidden" id="timeoutScreen">
+      <div class="top-secret-stamp">VÉSZLEZÁRÁS // IDŐ LEJÁRT</div>
+      <h1>Az archívum ajtajai bezárultak!</h1>
+      <div class="subtitle" id="timeoutSubtitle">Lejárt a(z) 1. zsiliphez tartozó 5 perces időkeret</div>
+      <div class="story-text">
+        A biztonsági rendszer reteszelte a kijáratot. Újrapróbálhatjátok az aktuális zsilipet újabb 5 perccel, 
+        újrakezdhetitek a küldetést, vagy folytathatjátok időkorlát nélküli gyakorló módban.
+      </div>
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <button class="btn btn-primary" onclick="retryCurrentGate()">⏱ Aktuális zsilip újrapróbálása (05:00)</button>
+        <button class="btn btn-secondary" onclick="location.reload()">↻ Újrakezdés elölről</button>
+        <button class="btn btn-secondary" onclick="continuePractice()">📖 Folytatás gyakorló módban</button>
+      </div>
+    </section>
 
-        <button onclick="checkTask3()">3. zsilip feltörése</button>
-        <div id="fb-3" class="feedback hidden"></div>
-    </div>
+  </main>
 
-    <!-- 4. ZSILIP -->
-    <div id="task-4" class="card hidden">
-        <span class="zsilip-badge">4. ZSILIP / 5</span>
-        <h2>Áttörés a betonfalon</h2>
-        <p>Egy szabotőr belenyúlt a német újraegyesítésről szóló titkos jelentésbe, és <strong>5 tárgyi hibát</strong> rejtett el benne. Írjátok be a megfelelő mezőkbe az aláhúzott, hibás részek helyes megfejtését! (A 3. hibánál elég csak a vezetéknevet beírni.)</p>
+  <!-- Tanári előnézet / Preset sáv -->
+  <div class="teacher-bar" id="teacherBar">
+    <button class="btn btn-secondary btn-sm" onclick="fillCurrentPreset()">
+      ⚡ Tanári teszt: Aktuális zsilip helyes kitöltése
+    </button>
+  </div>
 
-        <div class="error-text-box">
-            „1989 nyarán keletnémet állampolgárok tízezrei utaztak <span class="err-highlight">[1] Csehszlovákiába</span>, hogy onnan Ausztrián keresztül az <span class="err-highlight">[2] NDK-ba</span> jussanak. Az augusztusi Páneurópai Piknik után a magyar kormány szeptember 10-én megnyitotta a nyugati határt. Ősszel százezres tüntetések kezdődtek, így a megrendült vezetés leváltotta <span class="err-highlight">[3] Mihail Gorbacsov</span> pártfőtitkárt. A történelmi fordulat <span class="err-highlight">[4] 1989. október 23-án</span> érkezett el, amikor a határőrök megnyitották az átkelőket, és megkezdődött a berlini fal lebontása. A nyugatnémet kancellár, <span class="err-highlight">[5] Willy Brandt</span> azonnal meghirdette a német egység programját. Miután a győztes nagyhatalmak aláírták a „kettő plusz négy” szerződést, 1990. október 3-án megvalósult Németország egyesítése.”
-        </div>
-
-        <div class="fix-grid">
-            <div>
-                <label for="fix1">[1] Csehszlovákiába helyett:</label>
-                <input type="text" id="fix1" placeholder="Helyes ország (ragozva)...">
-            </div>
-            <div>
-                <label for="fix2">[2] NDK-ba helyett:</label>
-                <input type="text" id="fix2" placeholder="Helyes állam...">
-            </div>
-            <div>
-                <label for="fix3">[3] Mihail Gorbacsov helyett (csak vezetéknév):</label>
-                <input type="text" id="fix3" placeholder="Vezetéknév...">
-            </div>
-            <div>
-                <label for="fix4">[4] 1989. október 23-án helyett:</label>
-                <input type="text" id="fix4" placeholder="Pontos dátum...">
-            </div>
-            <div>
-                <label for="fix5">[5] Willy Brandt helyett:</label>
-                <input type="text" id="fix5" placeholder="Nyugatnémet kancellár...">
-            </div>
-        </div>
-
-        <button onclick="checkTask4()">4. zsilip feltörése</button>
-        <div id="fb-4" class="feedback hidden"></div>
-    </div>
-
-    <!-- 5. ZSILIP -->
-    <div id="task-5" class="card hidden">
-        <span class="zsilip-badge">5. ZSILIP / 5</span>
-        <h2>A Kreml utolsó zárja</h2>
-        <p>Elértetek a kijárati ajtóhoz! Válaszoljatok a négy zárókérdésre az ötödik hírszerzési jelentés alapján.</p>
-
-        <div class="quiz-q">
-            <strong>1. Mit jelentett Mihail Gorbacsov gazdasági-társadalmi reformprogramjának neve, a <em>peresztrojka</em>?</strong>
-            <label class="quiz-option"><input type="radio" name="q1" value="A"> Nyíltság, a cenzúra és a sajtókorlátozások eltörlése</label>
-            <label class="quiz-option"><input type="radio" name="q1" value="B"> Átalakítás, korlátozott piaci elemek és vállalati önállóság bevezetése</label>
-            <label class="quiz-option"><input type="radio" name="q1" value="C"> A nehézipar erőszakos fejlesztése és az ötéves tervek szigorítása</label>
-            <label class="quiz-option"><input type="radio" name="q1" value="D"> Katonai beavatkozás a szocialista tábor szuverenitásának védelmében</label>
-        </div>
-
-        <div class="quiz-q">
-            <strong>2. Melyik 1986. áprilisi esemény leplezte le drámaian a szovjet rendszer működésképtelenségét és a pártvezetés titkolózását?</strong>
-            <label class="quiz-option"><input type="radio" name="q2" value="A"> A csernobili atomerőmű-baleset</label>
-            <label class="quiz-option"><input type="radio" name="q2" value="B"> A szovjet csapatok kivonása Afganisztánból</label>
-            <label class="quiz-option"><input type="radio" name="q2" value="C"> A berlini fal lebontásának megkezdése</label>
-            <label class="quiz-option"><input type="radio" name="q2" value="D"> A moszkvai keményvonalas puccskísérlet</label>
-        </div>
-
-        <div class="quiz-q">
-            <strong>3. Melyik amerikai elnök kényszerítette térdre gazdaságilag a Szovjetuniót a fegyverkezési versennyel, majd tárgyalt Gorbacsovval a leszerelésről?</strong>
-            <label class="quiz-option"><input type="radio" name="q3" value="A"> Richard Nixon</label>
-            <label class="quiz-option"><input type="radio" name="q3" value="B"> John F. Kennedy</label>
-            <label class="quiz-option"><input type="radio" name="q3" value="C"> Harry S. Truman</label>
-            <label class="quiz-option"><input type="radio" name="q3" value="D"> Ronald Reagan</label>
-        </div>
-
-        <div class="quiz-q">
-            <strong>4. Mi történt 1991. december 25-én, amellyel hivatalosan is lezárult a hidegháború kora?</strong>
-            <label class="quiz-option"><input type="radio" name="q4" value="A"> Borisz Jelcin elbukott a moszkvai államcsínyben</label>
-            <label class="quiz-option"><input type="radio" name="q4" value="B"> Megalakult a Varsói Szerződés és a KGST</label>
-            <label class="quiz-option"><input type="radio" name="q4" value="C"> Mihail Gorbacsov lemondott, és a Szovjetunió felbomlott</label>
-            <label class="quiz-option"><input type="radio" name="q4" value="D"> A balti államok csatlakoztak a Független Államok Közösségéhez</label>
-        </div>
-
-        <button onclick="checkTask5()">Kijárati ajtó kinyitása</button>
-        <div id="fb-5" class="feedback hidden"></div>
-    </div>
-
-    <!-- GYŐZELMI KÉPERNYŐ -->
-    <div id="screen-win" class="card hidden" style="border-color: var(--accent-green);">
-        <span class="zsilip-badge" style="background: var(--accent-green);">KÜLDETÉS TELJESÍTVE!</span>
-        <h1>Gratulálunk, kijutottatok az archívumból!</h1>
-        <p>Sikeresen feltörtétek mind az öt biztonsági zsilipet, és lezártátok a hidegháború aktáit.</p>
-
-        <div class="story-box" style="font-style: normal; border-left-color: var(--accent-green);">
-            <div><strong>Csapattagok:</strong> <span id="res-names"></span></div>
-            <div><strong>Megoldási idő:</strong> <span id="res-time" style="color: var(--accent-amber); font-weight: bold;"></span></div>
-            <div><strong>Befejezés időpontja:</strong> <span id="res-date"></span></div>
-        </div>
-
-        <p><strong>Utolsó lépés:</strong> Kattintsatok az alábbi gombok egyikére, és küldjétek el az eredményeteket e-mailben a tanárotoknak!</p>
-
-        <div class="email-actions">
-            <a id="mailto-link" href="#" class="email-btn">E-mail küldése (Levelezőprogrammal)</a>
-            <a id="gmail-link" href="#" target="_blank" class="email-btn gmail">E-mail küldése (Gmail webes felületen)</a>
-            <button type="button" class="secondary-btn" onclick="copyResult()">Eredmény másolása vágólapra</button>
-        </div>
-        <div id="copy-fb" class="feedback success hidden">Az eredmény a vágólapra másolva! Illesszétek be egy e-mailbe és küldjétek el.</div>
-    </div>
-</div>
-
-<script>
-    // =========================================================================
-    // IDE ÍRD BE A SAJÁT E-MAIL CÍMEDET:
-    const TEACHER_EMAIL = "tanar.neve@iskola.hu";
-    // =========================================================================
-
-    let startTime = null;
+  <script>
+    // --- JÁTÉKÁLLAPOT ---
+    const GATE_TIME_SECONDS = 5 * 60; // Feladatonként 5 perc
+    let timeRemaining = GATE_TIME_SECONDS;
+    let totalElapsedSeconds = 0;
     let timerInterval = null;
-    let studentPair = "";
-    let finalElapsedText = "";
+    let practiceMode = false;
+    let currentGate = 1;
+    let student1 = '';
+    let student2 = '';
+    const unlockedGates = { 1: false, 2: false, 3: false, 4: false, 5: false };
+
+    // --- 1. ZSILIP ADATOK (keverve, kódok nélkül) ---
+    let gate1Items = [
+      { order: 3, text: 'A német–német alapszerződés megkötése, amelyben az NSZK és az NDK kölcsönösen elismerte egymást.' },
+      { order: 5, text: 'A szovjet hadsereg bevonulása Afganisztánba, amely véget vetett az enyhülés korszakának.' },
+      { order: 1, text: 'A kubai rakétaválság lezárása és a Washington–Moszkva közötti „forró drót” kiépítése.' },
+      { order: 4, text: 'A helsinki záróokmány aláírása 35 állam részvételével.' },
+      { order: 2, text: 'A csehszlovákiai „prágai tavasz” leverése és a Brezsnyev-doktrína meghirdetése.' }
+    ];
+    let draggedIndex = null;
+
+    // --- 2. ZSILIP ADATOK ---
+    const gate2Data = [
+      { id: 1, text: '1. Benzinjegy-rendszer és autómentes vasárnapok bevezetése.', correct: 'west', location: 'pool' },
+      { id: 2, text: '2. A magas olajárakból származó extraprofit miatt elhalasztott gazdasági reformok.', correct: 'east', location: 'pool' },
+      { id: 3, text: '3. A mikroelektronika, a számítástechnika és a szolgáltatószektor előtérbe helyezése.', correct: 'west', location: 'pool' },
+      { id: 4, text: '4. Súlyos cserearány-romlás a nyersanyagszegénység miatt.', correct: 'east', location: 'pool' },
+      { id: 5, text: '5. Stagfláció (gazdasági megtorpanás és magas infláció egyszerre) kialakulása.', correct: 'west', location: 'pool' },
+      { id: 6, text: '6. Nyugati hitelek („petrodollárok”) felvétele az életszínvonal mesterséges fenntartására.', correct: 'east', location: 'pool' },
+      { id: 7, text: '7. Az állami szerepvállalás csökkentése, neoliberális gazdaságpolitikai fordulat.', correct: 'west', location: 'pool' },
+      { id: 8, text: '8. Adósságspirál kialakulása a nyolcvanas évekre.', correct: 'east', location: 'pool' }
+    ];
+    let draggedCatId = null;
+
+    // --- 3. ZSILIP ADATOK ---
+    const gate3Countries = [
+      { num: 1, name: '1. Lengyelország', correctWay: 'C', correctActor: 'III' },
+      { num: 2, name: '2. Magyarország', correctWay: 'D', correctActor: 'I' },
+      { num: 3, name: '3. Csehszlovákia', correctWay: 'A', correctActor: 'IV' },
+      { num: 4, name: '4. Románia', correctWay: 'B', correctActor: 'II' }
+    ];
+
+    // --- 5. ZSILIP ADATOK ---
+    const gate5Questions = [
+      {
+        q: '1. Mit jelentett Mihail Gorbacsov gazdasági-társadalmi reformprogramjának neve, a peresztrojka?',
+        correct: 'B',
+        options: {
+          A: 'A) Nyíltság, a cenzúra és a sajtókorlátozások eltörlése',
+          B: 'B) Átalakítás, korlátozott piaci elemek és vállalati önállóság bevezetése',
+          C: 'C) A nehézipar erőszakos fejlesztése és az ötéves tervek szigorítása',
+          D: 'D) Katonai beavatkozás a szocialista tábor szuverenitásának védelmében'
+        }
+      },
+      {
+        q: '2. Melyik 1986. áprilisi esemény leplezte le drámaian a szovjet rendszer működésképtelenségét és a pártvezetés titkolózását?',
+        correct: 'A',
+        options: {
+          A: 'A) A csernobili atomerőmű-baleset',
+          B: 'B) A szovjet csapatok kivonása Afganisztánból',
+          C: 'C) A berlini fal lebontásának megkezdése',
+          D: 'D) A moszkvai keményvonalas puccskísérlet'
+        }
+      },
+      {
+        q: '3. Melyik amerikai elnök kényszerítette térdre gazdaságilag a Szovjetuniót a fegyverkezési versennyel, majd tárgyalt Gorbacsovval a leszerelésről (többek között 1986-ban Reykjavíkban)?',
+        correct: 'D',
+        options: {
+          A: 'A) Richard Nixon',
+          B: 'B) John F. Kennedy',
+          C: 'C) Harry S. Truman',
+          D: 'D) Ronald Reagan'
+        }
+      },
+      {
+        q: '4. Mi történt 1991. december 25-én, amellyel hivatalosan is lezárult a hidegháború kora?',
+        correct: 'C',
+        options: {
+          A: 'A) Borisz Jelcin elbukott a moszkvai államcsínyben',
+          B: 'B) Megalakult a Varsói Szerződés és a KGST',
+          C: 'C) Mihail Gorbacsov lemondott, és a Szovjetunió felbomlott',
+          D: 'D) A balti államok csatlakoztak a Független Államok Közösségéhez'
+        }
+      }
+    ];
+
+    // --- INDÍTÁS ÉS IDŐMÉRŐ ---
+    function formatTime(secsTotal) {
+      const mins = Math.floor(secsTotal / 60);
+      const secs = secsTotal % 60;
+      return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function formatDetailedTime(secsTotal) {
+      const mins = Math.floor(secsTotal / 60);
+      const secs = secsTotal % 60;
+      return `${mins} perc ${secs} másodperc (${formatTime(secsTotal)})`;
+    }
+
+    function updateTimerDisplay() {
+      if (practiceMode) return;
+      document.getElementById('timerDisplay').textContent = `${currentGate}. zsilip: ${formatTime(timeRemaining)}`;
+    }
 
     function startGame() {
-        const s1 = document.getElementById("student1").value.trim();
-        const s2 = document.getElementById("student2").value.trim();
-        const err = document.getElementById("start-error");
+      const m1 = document.getElementById('member1').value.trim();
+      const m2 = document.getElementById('member2').value.trim();
+      const introFb = document.getElementById('introFeedback');
 
-        if (!s1 || !s2) {
-            err.classList.remove("hidden");
-            return;
-        }
-        err.classList.add("hidden");
-        studentPair = `${s1} és ${s2}`;
-        document.getElementById("pair-display").textContent = `Csapat: ${studentPair}`;
+      if (!m1 || !m2) {
+        introFb.className = 'feedback error';
+        introFb.textContent = '❌ Kérjük, mindkét csapattag nevét adjátok meg a küldetés elindításához!';
+        return;
+      }
 
-        document.getElementById("screen-start").classList.add("hidden");
-        document.getElementById("task-1").classList.remove("hidden");
+      student1 = m1;
+      student2 = m2;
+      document.getElementById('hudNames').textContent = `${student1} & ${student2}`;
 
-        startTime = Date.now();
-        timerInterval = setInterval(updateTimer, 1000);
+      document.getElementById('introScreen').classList.add('hidden');
+      document.getElementById('gameScreen').classList.remove('hidden');
+      document.getElementById('hudBar').style.display = 'block';
+      document.getElementById('teacherBar').style.display = 'flex';
+
+      timeRemaining = GATE_TIME_SECONDS;
+      totalElapsedSeconds = 0;
+      updateTimerDisplay();
+
+      renderGate1();
+      renderGate2();
+      renderGate3();
+      renderGate5();
+
+      timerInterval = setInterval(updateTimer, 1000);
     }
 
     function updateTimer() {
-        const elapsedSec = Math.floor((Date.now() - startTime) / 1000);
-        const mins = String(Math.floor(elapsedSec / 60)).padStart(2, '0');
-        const secs = String(elapsedSec % 60).padStart(2, '0');
-        document.getElementById("timer").textContent = `${mins}:${secs}`;
+      totalElapsedSeconds++;
+      if (practiceMode) return;
+
+      timeRemaining--;
+      if (timeRemaining <= 0) {
+        timeRemaining = 0;
+        clearInterval(timerInterval);
+        document.getElementById('timeoutSubtitle').textContent = `Lejárt a(z) ${currentGate}. zsiliphez tartozó 5 perces időkeret`;
+        document.getElementById('gameScreen').classList.add('hidden');
+        document.getElementById('teacherBar').style.display = 'none';
+        document.getElementById('timeoutScreen').classList.remove('hidden');
+      }
+
+      updateTimerDisplay();
+
+      if (timeRemaining <= 60) {
+        document.getElementById('timerBox').classList.add('urgent');
+      } else {
+        document.getElementById('timerBox').classList.remove('urgent');
+      }
     }
 
-    // --- 1. FELADAT: Drag & Drop + Nyilak ---
-    const list = document.getElementById("sortable-list");
-    let draggedItem = null;
+    function retryCurrentGate() {
+      timeRemaining = GATE_TIME_SECONDS;
+      document.getElementById('timerBox').classList.remove('urgent');
+      updateTimerDisplay();
+      document.getElementById('timeoutScreen').classList.add('hidden');
+      document.getElementById('gameScreen').classList.remove('hidden');
+      document.getElementById('teacherBar').style.display = 'flex';
+      timerInterval = setInterval(updateTimer, 1000);
+    }
 
-    list.addEventListener("dragstart", (e) => {
-        draggedItem = e.target.closest(".sortable-item");
-        setTimeout(() => draggedItem.style.opacity = "0.5", 0);
-    });
+    function continuePractice() {
+      practiceMode = true;
+      document.getElementById('timeoutScreen').classList.add('hidden');
+      document.getElementById('gameScreen').classList.remove('hidden');
+      document.getElementById('teacherBar').style.display = 'flex';
+      const tBox = document.getElementById('timerBox');
+      tBox.classList.remove('urgent');
+      tBox.classList.add('practice');
+      document.getElementById('timerDisplay').textContent = 'GYAKORLÓ MÓD';
+      timerInterval = setInterval(updateTimer, 1000);
+    }
 
-    list.addEventListener("dragend", () => {
-        if (draggedItem) draggedItem.style.opacity = "1";
-        draggedItem = null;
-    });
+    function unlockNextGate(completedNum) {
+      unlockedGates[completedNum] = true;
+      const card = document.getElementById(`gate-${completedNum}`);
+      card.classList.remove('active');
+      card.classList.add('unlocked');
+      document.getElementById(`status-${completedNum}`).textContent = '🔓 NYITVA';
 
-    list.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        const afterElement = getDragAfterElement(list, e.clientY);
-        if (afterElement == null) {
-            list.appendChild(draggedItem);
-        } else {
-            list.insertBefore(draggedItem, afterElement);
+      const pill = document.getElementById(`pill-${completedNum}`);
+      pill.classList.remove('active');
+      pill.classList.add('unlocked');
+      pill.textContent = `${completedNum}. ✓`;
+
+      const nextNum = completedNum + 1;
+      if (nextNum <= 5) {
+        currentGate = nextNum;
+        timeRemaining = GATE_TIME_SECONDS;
+        document.getElementById('timerBox').classList.remove('urgent');
+        updateTimerDisplay();
+
+        const nextCard = document.getElementById(`gate-${nextNum}`);
+        nextCard.classList.remove('locked');
+        nextCard.classList.add('active');
+        document.getElementById(`status-${nextNum}`).textContent = '🔒 AKTÍV ZSILIP (05:00)';
+        document.getElementById(`body-${nextNum}`).classList.remove('hidden');
+
+        const nextPill = document.getElementById(`pill-${nextNum}`);
+        nextPill.classList.add('active');
+
+        setTimeout(() => {
+          nextCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 450);
+      }
+    }
+
+    // --- 1. ZSILIP LOGIKA ---
+    function renderGate1() {
+      const list = document.getElementById('sortableList');
+      list.innerHTML = '';
+      gate1Items.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'sort-item';
+        div.draggable = !unlockedGates[1];
+        div.ondragstart = () => { draggedIndex = idx; div.classList.add('dragging'); };
+        div.ondragend = () => { div.classList.remove('dragging'); };
+        div.ondragover = (e) => e.preventDefault();
+        div.ondrop = () => {
+          if (draggedIndex === null || draggedIndex === idx || unlockedGates[1]) return;
+          const moved = gate1Items.splice(draggedIndex, 1)[0];
+          gate1Items.splice(idx, 0, moved);
+          draggedIndex = null;
+          renderGate1();
+        };
+
+        div.innerHTML = `
+          <div class="sort-left">
+            <span class="drag-handle">☰</span>
+            <span>${item.text}</span>
+          </div>
+          <div class="sort-controls">
+            <button class="btn btn-secondary btn-sm" onclick="moveGate1(${idx}, -1)" ${idx === 0 || unlockedGates[1] ? 'disabled' : ''} title="Feljebb">▲</button>
+            <button class="btn btn-secondary btn-sm" onclick="moveGate1(${idx}, 1)" ${idx === gate1Items.length - 1 || unlockedGates[1] ? 'disabled' : ''} title="Lejjebb">▼</button>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function moveGate1(index, dir) {
+      if (unlockedGates[1]) return;
+      const newIndex = index + dir;
+      if (newIndex < 0 || newIndex >= gate1Items.length) return;
+      const temp = gate1Items[index];
+      gate1Items[index] = gate1Items[newIndex];
+      gate1Items[newIndex] = temp;
+      renderGate1();
+    }
+
+    function checkGate1() {
+      const isCorrect = gate1Items.every((item, index) => item.order === index + 1);
+      const fb = document.getElementById('feedback-1');
+      if (isCorrect) {
+        fb.className = 'feedback success';
+        fb.textContent = '✅ Helyes időrend (1962–1963 → 1968 → 1972 → 1975 → 1979)! Az 1. zsilip kinyílt.';
+        unlockNextGate(1);
+        renderGate1();
+      } else {
+        fb.className = 'feedback error';
+        fb.textContent = '❌ Az események időrendje még nem pontos. Ellenőrizzétek a legkorábbi és legkésőbbi dátumokat!';
+      }
+    }
+
+    // --- 2. ZSILIP LOGIKA ---
+    function renderGate2() {
+      const pool = document.getElementById('poolItems');
+      const west = document.getElementById('westItems');
+      const east = document.getElementById('eastItems');
+      pool.innerHTML = '';
+      west.innerHTML = '';
+      east.innerHTML = '';
+
+      let remainingInPool = 0;
+
+      gate2Data.forEach(item => {
+        if (item.location === 'pool') remainingInPool++;
+        const card = document.createElement('div');
+        card.className = 'cat-item';
+        card.draggable = !unlockedGates[2];
+        card.ondragstart = () => { draggedCatId = item.id; };
+
+        let buttonsHtml = '';
+        if (!unlockedGates[2]) {
+          if (item.location === 'pool') {
+            buttonsHtml = `
+              <button class="btn btn-secondary btn-sm" onclick="assignCat(${item.id}, 'west')">⬅ Nyugati blokk</button>
+              <button class="btn btn-secondary btn-sm" onclick="assignCat(${item.id}, 'east')">Keleti blokk ➡</button>
+            `;
+          } else if (item.location === 'west') {
+            buttonsHtml = `
+              <button class="btn btn-secondary btn-sm" onclick="assignCat(${item.id}, 'east')">Áttesz: Kelet ➡</button>
+              <button class="btn btn-secondary btn-sm" onclick="assignCat(${item.id}, 'pool')">Vissza</button>
+            `;
+          } else {
+            buttonsHtml = `
+              <button class="btn btn-secondary btn-sm" onclick="assignCat(${item.id}, 'west')">⬅ Áttesz: Nyugat</button>
+              <button class="btn btn-secondary btn-sm" onclick="assignCat(${item.id}, 'pool')">Vissza</button>
+            `;
+          }
         }
-    });
 
-    function getDragAfterElement(container, y) {
-        const draggableElements = [...container.querySelectorAll(".sortable-item:not(.dragging)")];
-        return draggableElements.reduce((closest, child) => {
-            const box = child.getBoundingClientRect();
-            const offset = y - box.top - box.height / 2;
-            if (offset < 0 && offset > closest.offset) {
-                return { offset: offset, element: child };
-            } else {
-                return closest;
-            }
-        }, { offset: Number.NEGATIVE_INFINITY }).element;
+        card.innerHTML = `
+          <div>${item.text}</div>
+          <div class="cat-actions">${buttonsHtml}</div>
+        `;
+
+        if (item.location === 'pool') pool.appendChild(card);
+        else if (item.location === 'west') west.appendChild(card);
+        else east.appendChild(card);
+      });
+
+      document.getElementById('poolBox').style.display = remainingInPool === 0 ? 'none' : 'block';
     }
 
-    function moveUp(btn) {
-        const li = btn.closest(".sortable-item");
-        if (li.previousElementSibling) {
-            list.insertBefore(li, li.previousElementSibling);
+    function assignCat(id, target) {
+      if (unlockedGates[2]) return;
+      const item = gate2Data.find(x => x.id === id);
+      if (item) item.location = target;
+      renderGate2();
+    }
+
+    function allowDrop(e) { e.preventDefault(); }
+    function dropToCol(e, target) {
+      e.preventDefault();
+      if (draggedCatId !== null) {
+        assignCat(draggedCatId, target);
+        draggedCatId = null;
+      }
+    }
+
+    function checkGate2() {
+      const fb = document.getElementById('feedback-2');
+      const unassigned = gate2Data.filter(x => x.location === 'pool').length;
+      if (unassigned > 0) {
+        fb.className = 'feedback error';
+        fb.textContent = `❌ Még ${unassigned} elem nincs besorolva egyik oszlopba sem!`;
+        return;
+      }
+      const wrongCount = gate2Data.filter(x => x.location !== x.correct).length;
+      if (wrongCount === 0) {
+        fb.className = 'feedback success';
+        fb.textContent = '✅ Tökéletes besorolás! A 2. zsilip kinyílt.';
+        unlockNextGate(2);
+        renderGate2();
+      } else {
+        fb.className = 'feedback error';
+        fb.textContent = `❌ Még ${wrongCount} elem rossz oszlopban szerepel. Vizsgáljátok meg újra a két tömb eltérő gazdasági válaszait!`;
+      }
+    }
+
+    // --- 3. ZSILIP LOGIKA ---
+    function renderGate3() {
+      const container = document.getElementById('matchingContainer');
+      container.innerHTML = '';
+      gate3Countries.forEach(c => {
+        const row = document.createElement('div');
+        row.className = 'match-row';
+        row.innerHTML = `
+          <div class="country-label">${c.name}</div>
+          <select class="dossier-select" id="way-${c.num}">
+            <option value="">-- Válassz átalakulási módot --</option>
+            <option value="A">A) Bársonyos forradalom (tömegtüntetések, általános sztrájk)</option>
+            <option value="B">B) Véres népfelkelés és a diktátor kivégzése</option>
+            <option value="C">C) Tárgyalásos forradalom (1989. jún. részlegesen szabad választások)</option>
+            <option value="D">D) Tárgyalásos forradalom (kerekasztal-egyeztetések)</option>
+          </select>
+          <select class="dossier-select" id="actor-${c.num}">
+            <option value="">-- Válassz kulcsszereplőt / szervezetet --</option>
+            <option value="I">I. Nemzeti Kerekasztal</option>
+            <option value="II">II. Nicolae Ceaușescu</option>
+            <option value="III">III. Lech Wałęsa és a Szolidaritás</option>
+            <option value="IV">IV. Václav Havel és a Polgári Fórum</option>
+          </select>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function checkGate3() {
+      const fb = document.getElementById('feedback-3');
+      let wrongRows = 0;
+      for (const c of gate3Countries) {
+        const w = document.getElementById(`way-${c.num}`).value;
+        const a = document.getElementById(`actor-${c.num}`).value;
+        if (w !== c.correctWay || a !== c.correctActor) {
+          wrongRows++;
         }
+      }
+
+      if (wrongRows === 0) {
+        fb.className = 'feedback success';
+        fb.textContent = '✅ Mind a négy ország párosítása hibátlan! A 3. zsilip kinyílt.';
+        gate3Countries.forEach(c => {
+          document.getElementById(`way-${c.num}`).disabled = true;
+          document.getElementById(`actor-${c.num}`).disabled = true;
+        });
+        unlockNextGate(3);
+      } else {
+        fb.className = 'feedback error';
+        fb.textContent = `❌ ${wrongRows} országnál még nem teljes vagy hibás a párosítás.`;
+      }
     }
 
-    function moveDown(btn) {
-        const li = btn.closest(".sortable-item");
-        if (li.nextElementSibling) {
-            list.insertBefore(li.nextElementSibling, li);
+    // --- 4. ZSILIP LOGIKA (ÖNÁLLÓ SZÖVEGBEÍRÁS) ---
+    function normalizeText(str) {
+      return str.trim().toLowerCase().replace(/\s+/g, ' ');
+    }
+
+    function checkGate4() {
+      const rules = {
+        'inp-1': ['magyarországra', 'magyarország'],
+        'inp-2': ['nszk-ba', 'nszk'],
+        'inp-3': ['honecker', 'erich honecker'],
+        'inp-4': ['1989. november 9-én', '1989. november 9.', 'november 9.', 'november 9-én', '1989. november 9'],
+        'inp-5': ['helmut kohl', 'helmuth kohl']
+      };
+
+      const wrongNums = [];
+      for (let i = 1; i <= 5; i++) {
+        const el = document.getElementById(`inp-${i}`);
+        const val = normalizeText(el.value);
+        if (!rules[`inp-${i}`].includes(val)) {
+          wrongNums.push(i);
         }
-    }
+      }
 
-    function checkTask1() {
-        const items = [...document.querySelectorAll("#sortable-list .sortable-item")];
-        const order = items.map(el => el.getAttribute("data-id")).join(",");
-        const fb = document.getElementById("fb-1");
-
-        if (order === "1,2,3,4,5") {
-            fb.className = "feedback success";
-            fb.textContent = "Helyes időrend! Az 1. zsilip kinyílt. Tovább a 2. zsiliphez...";
-            fb.classList.remove("hidden");
-            setTimeout(() => {
-                document.getElementById("task-1").classList.add("hidden");
-                document.getElementById("task-2").classList.remove("hidden");
-            }, 1200);
-        } else {
-            fb.className = "feedback error";
-            fb.textContent = "A sorrend még nem pontos. Ellenőrizzétek az évszámokat az 1. jelentésben!";
-            fb.classList.remove("hidden");
+      const fb = document.getElementById('feedback-4');
+      if (wrongNums.length === 0) {
+        for (let i = 1; i <= 5; i++) {
+          const el = document.getElementById(`inp-${i}`);
+          el.classList.add('verified');
+          el.disabled = true;
         }
+        fb.className = 'feedback success';
+        fb.textContent = '✅ Mind az 5 szabotált adatot sikeresen kijavítottátok! Megnyílt az utolsó zsilip.';
+        unlockNextGate(4);
+      } else {
+        fb.className = 'feedback error';
+        fb.textContent = `❌ A következő sorszámú mező(k)ben még hibás vagy hiányos a javítás: [${wrongNums.join('], [')}].`;
+      }
     }
 
-    // --- 2. FELADAT: Kategória besorolás ---
-    function allowDrop(ev) {
-        ev.preventDefault();
-    }
-
-    function dragCat(ev) {
-        ev.dataTransfer.setData("text", ev.target.id);
-    }
-
-    function dropCat(ev, targetId) {
-        ev.preventDefault();
-        const data = ev.dataTransfer.getData("text");
-        const el = document.getElementById(data);
-        if (el) {
-            document.getElementById(targetId).appendChild(el);
+    // --- 5. ZSILIP LOGIKA ---
+    function renderGate5() {
+      const container = document.getElementById('quizContainer');
+      container.innerHTML = '';
+      gate5Questions.forEach((item, idx) => {
+        const qDiv = document.createElement('div');
+        qDiv.className = 'quiz-item';
+        let optsHtml = '';
+        for (const [letter, text] of Object.entries(item.options)) {
+          optsHtml += `
+            <label class="quiz-opt">
+              <input type="radio" name="q5-${idx}" value="${letter}">
+              <span>${text}</span>
+            </label>
+          `;
         }
+        qDiv.innerHTML = `
+          <div class="quiz-q">${item.q}</div>
+          <div class="quiz-options">${optsHtml}</div>
+        `;
+        container.appendChild(qDiv);
+      });
     }
 
-    function assignCat(itemId, targetId) {
-        const el = document.getElementById(itemId);
-        document.getElementById(targetId).appendChild(el);
+    function getResultSummaryText() {
+      const timeFormatted = formatDetailedTime(totalElapsedSeconds);
+      return `Kódnév: Vörös Akta – Küldetés teljesítve!\n\n` +
+             `1. csapattag: ${student1}\n` +
+             `2. csapattag: ${student2}\n` +
+             `Pontos megoldási idő: ${timeFormatted}\n` +
+             `Státusz: Mind az 5 zsilip sikeresen feltörve.`;
     }
 
-    function checkTask2() {
-        const poolCount = document.getElementById("pool-2").querySelectorAll(".cat-item").length;
-        const fb = document.getElementById("fb-2");
+    function checkGate5() {
+      const fb = document.getElementById('feedback-5');
+      let unanswered = 0;
+      let wrong = 0;
 
-        if (poolCount > 0) {
-            fb.className = "feedback error";
-            fb.textContent = "Még nem soroltatok be minden elemet! Húzzátok az összes kártyát a két oszlop valamelyikébe.";
-            fb.classList.remove("hidden");
-            return;
+      gate5Questions.forEach((q, idx) => {
+        const checked = document.querySelector(`input[name="q5-${idx}"]:checked`);
+        if (!checked) {
+          unanswered++;
+        } else if (checked.value !== q.correct) {
+          wrong++;
         }
+      });
 
-        const westItems = [...document.getElementById("west").querySelectorAll(".cat-item")];
-        const eastItems = [...document.getElementById("east").querySelectorAll(".cat-item")];
+      if (unanswered > 0) {
+        fb.className = 'feedback error';
+        fb.textContent = '❌ Válaszoljatok mind a 4 kérdésre a kijárati ajtó nyitásához!';
+        return;
+      }
 
-        const westOk = westItems.every(el => el.getAttribute("data-target") === "west");
-        const eastOk = eastItems.every(el => el.getAttribute("data-target") === "east");
+      if (wrong === 0) {
+        clearInterval(timerInterval);
+        unlockedGates[5] = true;
 
-        if (westOk && eastOk) {
-            fb.className = "feedback success";
-            fb.textContent = "Tökéletes besorolás! A 2. zsilip feltörve.";
-            fb.classList.remove("hidden");
-            setTimeout(() => {
-                document.getElementById("task-2").classList.add("hidden");
-                document.getElementById("task-3").classList.remove("hidden");
-            }, 1200);
-        } else {
-            fb.className = "feedback error";
-            fb.textContent = "Van még eltévedt elem a két oszlop között. Nézzétek át újra a 2. jelentést!";
-            fb.classList.remove("hidden");
-        }
+        const pill = document.getElementById('pill-5');
+        pill.classList.remove('active');
+        pill.classList.add('unlocked');
+        pill.textContent = '5. ✓';
+
+        const timeFormatted = formatDetailedTime(totalElapsedSeconds);
+        document.getElementById('resMember1').textContent = student1;
+        document.getElementById('resMember2').textContent = student2;
+        document.getElementById('resTotalTime').textContent = timeFormatted;
+
+        const subject = encodeURIComponent(`Vörös Akta eredmény – ${student1} és ${student2}`);
+        const body = encodeURIComponent(getResultSummaryText());
+        document.getElementById('emailLinkBtn').href = `mailto:balogh.bence@szeged.piarista.hu?subject=${subject}&body=${body}`;
+
+        document.getElementById('gameScreen').classList.add('hidden');
+        document.getElementById('teacherBar').style.display = 'none';
+        document.getElementById('victoryScreen').classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        fb.className = 'feedback error';
+        fb.textContent = `❌ ${wrong} kérdésre még nem helyes a válasz. Ellenőrizzétek a jelöléseiteket!`;
+      }
     }
 
-    // --- 3. FELADAT: Párosítás ---
-    function checkTask3() {
-        const m1 = document.getElementById("m1-mode").value === "C" && document.getElementById("m1-person").value === "III";
-        const m2 = document.getElementById("m2-mode").value === "D" && document.getElementById("m2-person").value === "I";
-        const m3 = document.getElementById("m3-mode").value === "A" && document.getElementById("m3-person").value === "IV";
-        const m4 = document.getElementById("m4-mode").value === "B" && document.getElementById("m4-person").value === "II";
-        const fb = document.getElementById("fb-3");
-
-        if (m1 && m2 && m3 && m4) {
-            fb.className = "feedback success";
-            fb.textContent = "Minden ország és szereplő a helyén! A 3. zsilip kinyílt.";
-            fb.classList.remove("hidden");
-            setTimeout(() => {
-                document.getElementById("task-3").classList.add("hidden");
-                document.getElementById("task-4").classList.remove("hidden");
-            }, 1200);
-        } else {
-            fb.className = "feedback error";
-            fb.textContent = "Valamelyik párosítás hibás vagy hiányos. Ellenőrizzétek a 3. jelentést!";
-            fb.classList.remove("hidden");
-        }
+    function copyResultText() {
+      const text = getResultSummaryText();
+      const copyFb = document.getElementById('copyFeedback');
+      navigator.clipboard.writeText(text).then(() => {
+        copyFb.className = 'feedback success';
+        copyFb.textContent = '✅ Az eredmény szövege a vágólapra másolva! Illesszétek be egy új e-mailbe a balogh.bence@szeged.piarista.hu címre.';
+      }).catch(() => {
+        copyFb.className = 'feedback error';
+        copyFb.textContent = '❌ A böngésző nem engedélyezte az automatikus másolást, kérjük jelöljétek ki kézzel a fenti adatokat.';
+      });
     }
 
-    // --- 4. FELADAT: Hibajavítás ---
-    function norm(str) {
-        return str.trim().toLowerCase().replace(/\s+/g, " ");
+    // --- TANÁRI TESZT / PRESET ---
+    function fillCurrentPreset() {
+      if (currentGate === 1 && !unlockedGates[1]) {
+        gate1Items.sort((a, b) => a.order - b.order);
+        renderGate1();
+      } else if (currentGate === 2 && !unlockedGates[2]) {
+        gate2Data.forEach(item => { item.location = item.correct; });
+        renderGate2();
+      } else if (currentGate === 3 && !unlockedGates[3]) {
+        gate3Countries.forEach(c => {
+          document.getElementById(`way-${c.num}`).value = c.correctWay;
+          document.getElementById(`actor-${c.num}`).value = c.correctActor;
+        });
+      } else if (currentGate === 4 && !unlockedGates[4]) {
+        document.getElementById('inp-1').value = 'Magyarországra';
+        document.getElementById('inp-2').value = 'NSZK-ba';
+        document.getElementById('inp-3').value = 'Honecker';
+        document.getElementById('inp-4').value = '1989. november 9-én';
+        document.getElementById('inp-5').value = 'Helmut Kohl';
+      } else if (currentGate === 5 && !unlockedGates[5]) {
+        gate5Questions.forEach((q, idx) => {
+          const radio = document.querySelector(`input[name="q5-${idx}"][value="${q.correct}"]`);
+          if (radio) radio.checked = true;
+        });
+      }
     }
-
-    function checkTask4() {
-        const f1 = norm(document.getElementById("fix1").value);
-        const f2 = norm(document.getElementById("fix2").value);
-        const f3 = norm(document.getElementById("fix3").value);
-        const f4 = norm(document.getElementById("fix4").value);
-        const f5 = norm(document.getElementById("fix5").value);
-        const fb = document.getElementById("fb-4");
-
-        const ok1 = ["magyarországra", "magyarország"].includes(f1);
-        const ok2 = ["nszk", "nszk-ba"].includes(f2);
-        const ok3 = ["honecker", "honeckert"].includes(f3);
-        const ok4 = ["1989. november 9-én", "1989. november 9.", "1989. november 9", "november 9-én", "november 9.", "november 9", "1989.11.09.", "1989.11.09"].includes(f4);
-        const ok5 = ["helmuth kohl", "helmut kohl", "kohl"].includes(f5);
-
-        if (ok1 && ok2 && ok3 && ok4 && ok5) {
-            fb.className = "feedback success";
-            fb.textContent = "Az összes szabotázst kijavítottátok! Irány az utolsó zsilip...";
-            fb.classList.remove("hidden");
-            set
+  </script>
+</body>
+</html>
